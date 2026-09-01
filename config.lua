@@ -158,4 +158,7 @@ Config.compat = {
     coreAlerts = true,
 }
 
-Config.debug = false
+-- Development commands (/dispatchtest, /dispatchclear, /dispatchstatus) are
+-- registered only while this is on, and are admin-gated even then. Turn it on to
+-- exercise dispatch without needing a second player or an actual crime.
+Config.debug = true

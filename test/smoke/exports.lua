@@ -75,6 +75,26 @@ h.test('the manifest lists every lua file, and every listed file exists', functi
     end
 end)
 
+h.test('dev commands are admin-gated and self-disable without Config.debug', function()
+    -- /dispatchtest can put arbitrary text and coordinates in front of every
+    -- on-duty player of a service. It must never be reachable by an ordinary
+    -- player, and must not exist at all on a server that has not opted in.
+    local file = assert(io.open('server/dev.lua', 'r'))
+    local source = file:read('*a')
+    file:close()
+
+    h.assertTrue(source:find('if not Config.debug then return end', 1, true) ~= nil,
+        'the whole file must bail before registering anything when debug is off')
+
+    -- Every command in the file carries a permission gate.
+    local commands, gated = 0, 0
+    for _ in source:gmatch("QB%.commands%.add%(") do commands = commands + 1 end
+    for _ in source:gmatch("permission = 'admin'") do gated = gated + 1 end
+
+    h.assertTrue(commands > 0, 'sanity: the file registers commands')
+    h.assertEqual(gated, commands, 'every dev command must be admin-gated')
+end)
+
 h.test('the manifest globs assets with the trailing /* FiveM actually needs', function()
     local file = assert(io.open('fxmanifest.lua', 'r'))
     local manifest = file:read('*a')

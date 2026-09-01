@@ -32,6 +32,9 @@ server_scripts {
     'server/units.lua',
     'server/callbacks.lua',
     'server/compat.lua',
+    -- Development commands, self-disabling unless Config.debug is on. Last, so
+    -- every function it drives already exists.
+    'server/dev.lua',
 }
 
 -- state.lua owns the local call cache every other client file reads; ui.lua

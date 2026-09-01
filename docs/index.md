@@ -305,7 +305,11 @@ exports.qbdispatch:setTheme('#F59E0B')
 
 ## Testing
 
-`test/run.sh` — plain Lua, no FiveM, no database. The clock in `test/mocks.lua` is
+**In game:** see [testing.md](testing.md) — `/dispatchtest` raises a real call to
+your own service so the whole system can be exercised solo, without committing a
+crime or waiting for a colleague.
+
+**Offline:** `test/run.sh` — plain Lua, no FiveM, no database. The clock in `test/mocks.lua` is
 **driven** rather than auto-advancing, so expiry, fade and retention are all
 deterministic.
 
