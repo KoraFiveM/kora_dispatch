@@ -211,13 +211,44 @@ function TileLayer({
 }: { map: MapConfig; centre: { x: number; y: number }; scale: number; viewport: { width: number; height: number } }) {
     if (!viewport.width || !viewport.height) return null
 
-    const full = map.tileSize * 2 ** map.maxZoom
-
     // Pick the zoom level whose native resolution is closest to what is on
     // screen: one level up from `scale` reaching 1:1 at that level.
     const ideal = map.maxZoom + Math.log2(scale)
     const zoom = Math.max(map.minZoom, Math.min(map.maxZoom, Math.round(ideal)))
 
+    // Two layers, coarse first.
+    //
+    // The backdrop is the next zoom out, stretched to cover the same ground. It
+    // is what every real tile map does, and it is why they never flash black:
+    // a tile at the sharp level that is still downloading -- or missing
+    // outright -- reveals a blurrier version of the same place instead of a
+    // hole. Without it, one slow request is a black rectangle across the map.
+    return (
+        <div aria-hidden>
+            {zoom > map.minZoom ? (
+                <TileGrid map={map} zoom={zoom - 1} centre={centre} scale={scale} viewport={viewport} />
+            ) : null}
+            <TileGrid map={map} zoom={zoom} centre={centre} scale={scale} viewport={viewport} />
+        </div>
+    )
+}
+
+/**
+ * One zoom level's worth of tiles covering the viewport.
+ *
+ * Overscans by a tile on every side: during a pan the viewport moves before
+ * React re-renders, and without the margin the leading edge is briefly empty.
+ */
+function TileGrid({
+    map, zoom, centre, scale, viewport,
+}: {
+    map: MapConfig
+    zoom: number
+    centre: { x: number; y: number }
+    scale: number
+    viewport: { width: number; height: number }
+}) {
+    const full = map.tileSize * 2 ** map.maxZoom
     const tilesPerSide = 2 ** zoom
     // How many basemap pixels one tile covers at this level.
     const tileSpan = full / tilesPerSide
@@ -226,10 +257,11 @@ function TileLayer({
     const left = centre.x - viewport.width / 2 / scale
     const top = centre.y - viewport.height / 2 / scale
 
-    const firstX = Math.max(0, Math.floor(left / tileSpan))
-    const lastX = Math.min(tilesPerSide - 1, Math.floor((left + viewport.width / scale) / tileSpan))
-    const firstY = Math.max(0, Math.floor(top / tileSpan))
-    const lastY = Math.min(tilesPerSide - 1, Math.floor((top + viewport.height / scale) / tileSpan))
+    const OVERSCAN = 1
+    const firstX = Math.max(0, Math.floor(left / tileSpan) - OVERSCAN)
+    const lastX = Math.min(tilesPerSide - 1, Math.floor((left + viewport.width / scale) / tileSpan) + OVERSCAN)
+    const firstY = Math.max(0, Math.floor(top / tileSpan) - OVERSCAN)
+    const lastY = Math.min(tilesPerSide - 1, Math.floor((top + viewport.height / scale) / tileSpan) + OVERSCAN)
 
     const tiles = []
     for (let x = firstX; x <= lastX; x++) {
@@ -240,14 +272,22 @@ function TileLayer({
                     src={`./${map.tilePath}/${zoom}/${x}/${y}.jpg`}
                     alt=""
                     draggable={false}
-                    className="absolute origin-top-left"
+                    loading="eager"
+                    // A tile that cannot be fetched hides itself rather than
+                    // painting a broken-image box over the backdrop below.
+                    onError={(event) => {
+                        event.currentTarget.style.visibility = "hidden"
+                    }}
+                    className="pointer-events-none absolute origin-top-left select-none"
                     style={{
-                        // +1px on the size closes the hairline seams that
-                        // sub-pixel positioning otherwise leaves between tiles.
-                        left: (x * tileSpan - left) * scale,
-                        top: (y * tileSpan - top) * scale,
-                        width: screenSpan + 1,
-                        height: screenSpan + 1,
+                        // Rounded to whole pixels. Sub-pixel placement let the
+                        // browser round adjacent tiles apart, which showed as
+                        // hairline seams; the +1 on the size closes what is
+                        // left.
+                        left: Math.round((x * tileSpan - left) * scale),
+                        top: Math.round((y * tileSpan - top) * scale),
+                        width: Math.ceil(screenSpan) + 1,
+                        height: Math.ceil(screenSpan) + 1,
                         // The atlas is a bright daytime map; this settles it into
                         // the charcoal palette so markers stay the loudest thing
                         // on screen.
@@ -258,7 +298,7 @@ function TileLayer({
         }
     }
 
-    return <div aria-hidden>{tiles}</div>
+    return <>{tiles}</>
 }
 
 function CallMarker({
