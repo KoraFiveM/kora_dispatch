@@ -278,7 +278,15 @@ function TileGrid({
                     onError={(event) => {
                         event.currentTarget.style.visibility = "hidden"
                     }}
-                    className="pointer-events-none absolute origin-top-left select-none"
+                    // max-w-none is LOAD-BEARING. Tailwind's Preflight ships
+                    // `img,video{max-width:100%;height:auto}`, and an inline
+                    // `width` does not override `max-width` -- they are separate
+                    // properties. Without this every tile is clamped to the
+                    // container's width while its left position keeps spreading
+                    // with the zoom, so the map silently tears itself apart into
+                    // strips pinned to the edges. Invisible at low zoom, where
+                    // tiles are smaller than the container and nothing clamps.
+                    className="pointer-events-none absolute max-h-none max-w-none origin-top-left select-none"
                     style={{
                         // Rounded to whole pixels. Sub-pixel placement let the
                         // browser round adjacent tiles apart, which showed as
