@@ -117,22 +117,23 @@ h.test('the manifest globs assets with the trailing /* FiveM actually needs', fu
     -- 404s and React never mounts -- with no error anywhere.
     h.assertTrue(manifest:find("'web/build/assets/%*%*/%*'") ~= nil,
         "assets must be globbed as 'web/build/assets/**/*'")
-    -- Spelled out to the exact {z}/{x}/{y} depth, and asserted to actually
-    -- match every tile on disk -- a pattern that silently matches nothing would
-    -- leave the map blank with no error anywhere.
-    h.assertTrue(manifest:find("'web/build/map/atlas/%*/%*/%*%.jpg'") ~= nil,
-        "map tiles must be globbed at their real depth")
+    -- The tile tree is nested ({z}/{x}/{y}.jpg), so it needs the RECURSIVE
+    -- '**/*' form -- the one CFX's own resources use for nested trees
+    -- ('nui/**/*', 'panel/**/*', 'web/public/**/*').
+    --
+    -- A multi-level 'atlas/*/*/*.jpg' matches under a shell but NOT under
+    -- FiveM's globber, and was shipped here once: every tile came back a broken
+    -- image with nothing in any log. Asserting the literal pattern is the only
+    -- honest check available offline -- counting shell matches (which the
+    -- previous version of this test did) proves nothing about FiveM and gave
+    -- false confidence.
+    h.assertTrue(manifest:find("'web/build/map/%*%*/%*'") ~= nil,
+        "map tiles need the recursive '**/*' glob; a multi-level '*/*/*' matches nothing in FiveM")
 
-    local pipe = assert(io.popen('ls web/build/map/atlas/*/*/*.jpg 2>/dev/null | wc -l'))
-    local matched = tonumber(pipe:read('*a'))
-    pipe:close()
-
-    local all = assert(io.popen("find web/build/map -name '*.jpg' | wc -l"))
-    local total = tonumber(all:read('*a'))
-    all:close()
-
-    h.assertTrue(total > 0, 'sanity: tiles are vendored')
-    h.assertEqual(matched, total, 'the manifest pattern must match every vendored tile')
+    local tiles = assert(io.popen("find web/build/map -name '*.jpg' | wc -l"))
+    local total = tonumber(tiles:read('*a'))
+    tiles:close()
+    h.assertTrue(total > 0, 'sanity: basemap tiles are vendored')
 end)
 
 h.report('exports')

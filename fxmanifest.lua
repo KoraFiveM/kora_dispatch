@@ -63,10 +63,12 @@ files {
     -- Vendored basemap tile pyramid (z0-z3), served to the NUI as
     -- nui://qbdispatch/web/build/map/atlas/{z}/{x}/{y}.jpg.
     --
-    -- Spelled out as the exact {z}/{x}/{y} depth rather than a '**/*' recursive
-    -- glob. The only recursive glob this framework relies on elsewhere
-    -- ('web/build/assets/**/*') matches ONE level, and a resource globber that
-    -- quietly matches nothing here would leave the map blank with no error --
-    -- the same silent-404 failure the assets comment below warns about.
-    'web/build/map/atlas/*/*/*.jpg',
+    -- '**/*' is the RECURSIVE form, and the only one FiveM honours for a nested
+    -- tree: CFX's own resources ship 'nui/**/*', 'panel/**/*' and
+    -- 'web/public/**/*' for exactly this. A multi-level 'atlas/*/*/*.jpg' has no
+    -- precedent anywhere in the server's own resources and does NOT match --
+    -- that spelling was tried here and served nothing, leaving every tile as a
+    -- broken image with no error to find. A single '*' is only good for one
+    -- segment, as in CFX's own 'html/vendor/*.css'.
+    'web/build/map/**/*',
 }
