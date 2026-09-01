@@ -93,6 +93,19 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
 
     h.assertTrue(commands > 0, 'sanity: the file registers commands')
     h.assertEqual(gated, commands, 'every dev command must be admin-gated')
+
+    -- Delegated to qblib rather than hand-rolled. A bare
+    -- IsPlayerAceAllowed(src, 'qbcore.admin') refuses an admin who holds the
+    -- bare `group.admin` principal -- which is how this framework's own
+    -- server.cfg grants it -- and ignores level ranking, so a 'god' would fail
+    -- an 'admin' gate.
+    h.assertTrue(source:find('QB.permissions.hasLevel', 1, true) ~= nil,
+        'the permission check must go through qblib, not a hand-rolled ACE test')
+    -- Comment lines stripped first: the rationale above mentions the native by
+    -- name, and matching prose would make this assertion unfixable.
+    local code = source:gsub('%-%-[^\n]*', '')
+    h.assertTrue(code:find('IsPlayerAceAllowed(', 1, true) == nil,
+        'no hand-rolled ACE check should remain in the code')
 end)
 
 h.test('the manifest globs assets with the trailing /* FiveM actually needs', function()

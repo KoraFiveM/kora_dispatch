@@ -10,11 +10,25 @@ if not Config.debug then return end
 
 Dispatch = Dispatch or {}
 
+-- Ranked levels, most-privileged first, matching qbadmin's own table. Ranked
+-- rather than a single ACE string so a 'god' satisfies an 'admin' requirement --
+-- which a bare IsPlayerAceAllowed(src, 'qbcore.admin') does not.
+local LEVELS = { 'god', 'admin', 'mod', 'user' }
+local PERMISSION_OPTIONS = { prefix = 'qbcore' }
+
+---Delegates to qblib rather than hand-rolling an ACE check.
+---
+---QB.permissions.hasLevel accepts EITHER `qbcore.<level>` or the bare
+---`group.<level>` principal, and folds in Discord roles where a server
+---configures them. The hand-rolled version this replaces only ever tested
+---`qbcore.admin`, so an admin who held `group.admin` -- which is how this test
+---server's own server.cfg grants it -- was refused by dispatch while every
+---other admin command on the server accepted them.
 ---@param source integer
 ---@param permission string
 ---@return boolean
 local function isAdmin(source, permission)
-    return IsPlayerAceAllowed(source, 'qbcore.' .. permission)
+    return QB.permissions.hasLevel(source, permission, LEVELS, PERMISSION_OPTIONS)
 end
 
 ---The caller's own position, so a test call lands somewhere they can drive to
