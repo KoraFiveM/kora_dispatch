@@ -1,0 +1,58 @@
+-- Per-service UI colour.
+--
+-- The accent is applied CLIENT-side, on purpose: two players on the same server
+-- see different colours at the same moment because they belong to different
+-- services, so this can never be a server setting. A job resource calls
+-- exports.qbdispatch:setTheme('#3B82F6') from its own client code and owns its
+-- own brand.
+
+Dispatch = Dispatch or {}
+Dispatch.theme = {}
+
+local current
+
+---@param hex any
+---@return boolean
+local function isHex(hex)
+    return type(hex) == 'string' and hex:match('^#%x%x%x%x%x%x$') ~= nil
+end
+
+---Applies an accent colour to the dispatch UI.
+---
+---The HSL derivation (hover, pressed, soft, border, and a contrast-safe
+---foreground) is NOT redone here -- QB.theme.tokens already implements exactly
+---the maths qblib's own NUI uses, so every framework surface stays consistent
+---and there is one place to change it.
+---@param hex string|nil `#RRGGBB`; nil restores the service default.
+---@return boolean ok, string|nil error
+function Dispatch.theme.set(hex)
+    if hex ~= nil and not isHex(hex) then
+        return false, ('accent must be a #RRGGBB hex colour, got %s'):format(tostring(hex))
+    end
+
+    if hex == nil then
+        local S = Dispatch.state.data
+        hex = (S.config and S.config.accent) or Config.defaultService.accent
+    end
+
+    current = hex
+
+    local ok, tokens = pcall(function() return QB.theme.tokens(hex) end)
+    if not ok or type(tokens) ~= 'table' then
+        return false, 'failed to derive theme tokens'
+    end
+
+    Dispatch.ui.send('qbdispatch:theme', tokens)
+    return true
+end
+
+---@return string|nil
+function Dispatch.theme.get()
+    return current
+end
+
+---Re-applies whatever accent is in force. Called after hydrate, so a service
+---that never calls setTheme still gets its configured default.
+function Dispatch.theme.refresh()
+    Dispatch.theme.set(current)
+end
