@@ -17,6 +17,27 @@ Dispatch.ui = {}
 local ready = false
 local pending = {}
 
+-- Whether THIS resource currently holds NUI focus.
+--
+-- SetNuiFocus is global, not per-resource: calling SetNuiFocus(false, false)
+-- releases whoever actually has it. Releasing focus we never took steals the
+-- mouse from another resource's open UI -- which is exactly what happened when
+-- the tablet's close path released unconditionally: hydrate() calls
+-- setTablet(false) on player load and on every job/duty change, and on login
+-- that lands while qbmultichar owns focus for character selection. The player
+-- then cannot click a character, never logs in, and every logged-in-gated UI on
+-- the server (the HUD included) stays hidden.
+--
+-- So: only ever release focus this resource took.
+local hasFocus = false
+
+---@param focused boolean
+local function setFocus(focused)
+    if focused == hasFocus then return end
+    hasFocus = focused
+    SetNuiFocus(focused, focused)
+end
+
 ---@param action string
 ---@param data any
 function Dispatch.ui.send(action, data)
@@ -58,13 +79,14 @@ end
 ---Opens or closes the tablet, taking and releasing NUI focus with it.
 ---@param open boolean
 function Dispatch.ui.setTablet(open)
-    -- Closing ALWAYS releases focus, even when this resource already believes
-    -- the tablet is shut. Going off duty clears the local state first, so an
-    -- early return here would leave a player who was mid-tablet with their mouse
-    -- locked to a frame that is no longer rendering anything -- and no in-game
-    -- way out of it.
+    -- Closing always releases OUR focus, even when this resource already
+    -- believes the tablet is shut -- going off duty clears the local state
+    -- first, so an early return would leave a player who was mid-tablet with
+    -- their mouse locked to a frame that no longer renders anything. setFocus
+    -- is a no-op when we never held it, so this cannot disturb another
+    -- resource's UI.
     if not open then
-        SetNuiFocus(false, false)
+        setFocus(false)
         if not Dispatch.state.data.tabletOpen then return end
     elseif open == Dispatch.state.data.tabletOpen then
         return
@@ -73,7 +95,7 @@ function Dispatch.ui.setTablet(open)
     end
 
     Dispatch.state.setTabletOpen(open)
-    if open then SetNuiFocus(true, true) end
+    setFocus(open)
     Dispatch.ui.render()
 
     -- The server only runs the unit heartbeat while somebody is looking, so the
@@ -128,6 +150,7 @@ end)
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= GetCurrentResourceName() then return end
     -- Leaving NUI focus set would lock the player's mouse into a frame that no
-    -- longer exists, with no way out but a reconnect.
-    SetNuiFocus(false, false)
+    -- longer exists, with no way out but a reconnect. Gated the same way: if we
+    -- did not take focus, someone else holds it and it is not ours to drop.
+    setFocus(false)
 end)

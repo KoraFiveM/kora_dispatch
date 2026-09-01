@@ -62,5 +62,11 @@ files {
     'web/build/assets/**/*',
     -- Vendored basemap tile pyramid (z0-z3), served to the NUI as
     -- nui://qbdispatch/web/build/map/atlas/{z}/{x}/{y}.jpg.
-    'web/build/map/**/*',
+    --
+    -- Spelled out as the exact {z}/{x}/{y} depth rather than a '**/*' recursive
+    -- glob. The only recursive glob this framework relies on elsewhere
+    -- ('web/build/assets/**/*') matches ONE level, and a resource globber that
+    -- quietly matches nothing here would leave the map blank with no error --
+    -- the same silent-404 failure the assets comment below warns about.
+    'web/build/map/atlas/*/*/*.jpg',
 }

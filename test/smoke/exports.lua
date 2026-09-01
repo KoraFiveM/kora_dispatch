@@ -104,8 +104,22 @@ h.test('the manifest globs assets with the trailing /* FiveM actually needs', fu
     -- 404s and React never mounts -- with no error anywhere.
     h.assertTrue(manifest:find("'web/build/assets/%*%*/%*'") ~= nil,
         "assets must be globbed as 'web/build/assets/**/*'")
-    h.assertTrue(manifest:find("'web/build/map/%*%*/%*'") ~= nil,
-        "map tiles must be globbed as 'web/build/map/**/*'")
+    -- Spelled out to the exact {z}/{x}/{y} depth, and asserted to actually
+    -- match every tile on disk -- a pattern that silently matches nothing would
+    -- leave the map blank with no error anywhere.
+    h.assertTrue(manifest:find("'web/build/map/atlas/%*/%*/%*%.jpg'") ~= nil,
+        "map tiles must be globbed at their real depth")
+
+    local pipe = assert(io.popen('ls web/build/map/atlas/*/*/*.jpg 2>/dev/null | wc -l'))
+    local matched = tonumber(pipe:read('*a'))
+    pipe:close()
+
+    local all = assert(io.popen("find web/build/map -name '*.jpg' | wc -l"))
+    local total = tonumber(all:read('*a'))
+    all:close()
+
+    h.assertTrue(total > 0, 'sanity: tiles are vendored')
+    h.assertEqual(matched, total, 'the manifest pattern must match every vendored tile')
 end)
 
 h.report('exports')
