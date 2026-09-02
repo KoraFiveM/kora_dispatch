@@ -85,12 +85,31 @@ QB.keybind.add({
     end,
 })
 
+---Says why the tablet refused to open, but ONLY to someone who plausibly meant
+---to open it: a player employed in a dispatch service who is currently off duty.
+---
+---The tablet key defaults to F9, which plenty of other resources also bind, so
+---an unconditional notification would fire at civilians who pressed it for
+---something else entirely. Silence is right for them and wrong for the off-duty
+---officer, for whom a dead key looks exactly like a broken resource.
+local function warnIfOffDuty()
+    local job = exports.qbcore:getPlayerData({ 'job' })
+    local jobType = job and job.type
+    if not jobType or jobType == 'none' or jobType == 'civ' then return end
+    if job.onduty then return end
+
+    QB.notify.send({
+        message = 'You are off duty -- dispatch is closed. Go on duty to open the tablet.',
+        type = 'error',
+    })
+end
+
 QB.keybind.add({
     name = 'qbdispatch_tablet',
     description = 'Dispatch: open tablet',
     defaultKey = Config.keybinds.tablet,
     onPressed = function()
-        if not Dispatch.state.isActive() then return end
+        if not Dispatch.state.isActive() then return warnIfOffDuty() end
         Dispatch.ui.setTablet(not Dispatch.state.data.tabletOpen)
     end,
 })

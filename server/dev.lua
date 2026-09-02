@@ -94,6 +94,26 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
         return QB.notify.send(source, { message = ('Test call refused: %s'):format(count), type = 'error' })
     end
 
+    -- A call reaching nobody is the single most confusing outcome of this
+    -- command: an admin raises it, sees a success notification, and nothing
+    -- appears on their screen. Dispatch reaches ON-DUTY members of a service
+    -- only, and a job's `type` is readable whether or not you are on duty --
+    -- so an off-duty officer testing their own service lands here every time.
+    -- Naming the cause is the difference between a one-line fix (/police-duty)
+    -- and hunting a phantom bug in the push path.
+    if count == 0 then
+        local job = exports.qbcore:getJob(source)
+        local selfService = job and job.type
+        local hint = (selfService == service and not (job and job.onduty))
+            and ' You are OFF DUTY -- go on duty and it will reach you.'
+            or ' Nobody is on duty for that service.'
+
+        return QB.notify.send(source, {
+            message = ('Raised #%d (%s, P%d) but it reached 0 units.%s'):format(id, service, priority, hint),
+            type = 'error',
+        })
+    end
+
     QB.notify.send(source, {
         message = ('Raised #%d (%s, P%d) to %d unit(s).'):format(id, service, priority, count),
         type = 'success',
