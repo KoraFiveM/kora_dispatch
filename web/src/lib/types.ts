@@ -62,9 +62,17 @@ export interface CalibrationPoint {
 
 export interface MapConfig {
     tilePath: string
+    /** Tile file extension, without the dot. Defaults to `jpg`. */
+    tileExtension?: string
     minZoom: number
     maxZoom: number
     tileSize: number
+    /**
+     * Tiles across and down at `maxZoom`. Omit for a square pyramid, where both
+     * are `2 ** maxZoom`. The in-game-style basemap is 8x12, not square, so the
+     * projection cannot assume one number for both axes.
+     */
+    grid?: { x: number; y: number }
     calibration: { a: CalibrationPoint; b: CalibrationPoint }
     fadeHoldFraction: number
 }
@@ -74,7 +82,7 @@ export interface ServiceConfig {
     accent: string
     /** Lua sends a 1-based array as an object; both shapes are handled. */
     priorities: Record<string, PriorityConfig> | PriorityConfig[]
-    feed: { maxVisible: number; position: string }
+    feed: { maxVisible: number; position: string; pageSize?: number }
     map: MapConfig
 }
 

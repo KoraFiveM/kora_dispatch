@@ -113,8 +113,16 @@ Attaches a unit, advances them, or detaches them.
 - pass a state explicitly to jump to it
 - pass `false` to detach
 
-Returns the new state, or `false, error`. Refuses a player who is off duty or on
-a different service to the call.
+Returns the new state, or `false, error`. Refuses a player who is off duty, on a
+different service to the call, or in a department the call was never sent to.
+
+Also refuses an **accept** from a unit already committed to
+`Config.dispatch.maxActiveCalls` live calls (default 1) -- the error reads "you
+are already en route to a call", which the respond keybind surfaces as a
+notification. Only the accept is capped: advancing and detaching are always
+allowed, or a unit at the cap could never release the call holding it there.
+`clear`, closed and expired calls stop counting immediately. Set
+`maxActiveCalls = 0` to disable the cap.
 
 ### `exports.qbdispatch:getOnDutyUnits(filter?)`
 
@@ -178,7 +186,7 @@ All rebindable through FiveM's own key-binding settings.
 | --- | --- |
 | `Page Up` / `Page Down` | Move the selection; keeps scrolling past live calls into history. |
 | `Home` | Accept, then en route → on scene → clear. With nothing selected it responds to the newest live call. |
-| `End` | Hide/show the feed. |
+| `End` | Hide/show the dispatch UI. With the tablet open it closes the tablet -- that is what holds NUI focus, so hiding the feed behind it would leave the player stuck in a focused overlay. |
 | `F9` | Open the tablet. |
 
 The feed is pointer-transparent and never takes NUI focus, so a call can be
@@ -203,6 +211,15 @@ the game engine nothing.
 
 See [map.md](map.md) for the basemap, the projection, and how to recalibrate for
 a different image.
+
+The tablet's call list is **paginated**, `Config.feed.pageSize` cards at a time
+(default 8). `Config.history.max` retains up to 50 calls per service, and a
+50-card scroll with no sense of position in it is not a list anyone can work
+from. The overlay feed is not paginated -- `Config.feed.maxVisible` is a rolling
+window, because that surface is glanceable, not browsable.
+
+Changing the filter or the search resets to page one; calls arriving or expiring
+does not, so a reader on the last page is not snapped back to the top mid-shift.
 
 ---
 

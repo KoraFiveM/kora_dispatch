@@ -113,7 +113,27 @@ end)
 
 -- --- unit state -------------------------------------------------------------
 
+-- Config.dispatch.maxActiveCalls caps how many live calls one unit may be
+-- committed to (shipped default: 1), so attachments LEAK between tests in this
+-- file -- a unit left en route in one test is at the cap in the next and cannot
+-- accept anything. These two helpers keep each scenario's starting state
+-- explicit instead of depending on the order the tests happen to run in.
+local function releaseAll()
+    for src = 1, 5 do Dispatch.store.detachAll(src) end
+end
+
+---Runs `fn` with the cap temporarily set to `cap` (0 disables it), restoring the
+---real configured value afterwards even if `fn` raises.
+local function withCap(cap, fn)
+    local previous = Config.dispatch.maxActiveCalls
+    Config.dispatch.maxActiveCalls = cap
+    local ok, err = pcall(fn)
+    Config.dispatch.maxActiveCalls = previous
+    if not ok then error(err, 0) end
+end
+
 h.test('respond advances a unit through the state machine', function()
+    releaseAll()
     local id = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'State test' })
 
     h.assertEqual(Dispatch.api.setUnitState(1, id), 'en_route', 'first press attaches')
@@ -161,12 +181,20 @@ h.test('onAccept fires once, on the first attach only', function()
 end)
 
 h.test('going off duty detaches a unit from every call', function()
+    releaseAll()
     local a = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'A' })
     local b = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'B' })
-    Dispatch.api.setUnitState(1, a)
-    Dispatch.api.setUnitState(1, b)
+
+    -- Cap lifted deliberately: being attached to two calls at once is the exact
+    -- state this test needs to prove detachAll clears, and the shipped cap of 1
+    -- would otherwise refuse the second attach and make the assertion vacuous.
+    withCap(0, function()
+        Dispatch.api.setUnitState(1, a)
+        Dispatch.api.setUnitState(1, b)
+    end)
 
     h.assertEqual(#Dispatch.api.getCall(a).units, 1, 'attached to A')
+    h.assertEqual(#Dispatch.api.getCall(b).units, 1, 'and to B')
 
     TriggerEvent('QBCore:Server:SetDuty', 1, false)
 
@@ -230,6 +258,7 @@ h.test('a closed call cannot be updated or closed again', function()
 end)
 
 h.test('a sibling job in the same service cannot attach to a narrower call', function()
+    releaseAll()
     -- A call raised against jobs={'police'} never reached the sheriff's
     -- department, so a deputy must not appear on its unit list either --
     -- otherwise it shows responders who were never told about the incident.
@@ -243,6 +272,7 @@ h.test('a sibling job in the same service cannot attach to a narrower call', fun
 end)
 
 h.test('a service-wide call admits every job in that service', function()
+    releaseAll()
     local id = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'All units' })
 
     h.assertEqual(Dispatch.api.setUnitState(1, id), 'en_route', 'the officer')

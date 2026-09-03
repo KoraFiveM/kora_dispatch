@@ -34,15 +34,21 @@ export function devState(): DispatchState {
                 "2": { label: "High", ttl: 300000, color: "#F59E0B" },
                 "3": { label: "Routine", ttl: 120000, color: "#949494" },
             },
-            feed: { maxVisible: 4, position: "left-center" },
+            feed: { maxVisible: 4, position: "left-center", pageSize: 8 },
+            // Mirrors Config.map exactly. A dev harness pointed at a different
+            // basemap than the resource ships is worse than no harness: the
+            // projection is the part most likely to be wrong, and it would be
+            // wrong here in a way the game never reproduces.
             map: {
-                tilePath: "map/atlas",
-                minZoom: 0,
+                tilePath: "map/mainmap",
+                tileExtension: "png",
+                minZoom: 1,
                 maxZoom: 3,
                 tileSize: 256,
+                grid: { x: 8, y: 12 },
                 calibration: {
-                    a: { world: { x: 195.17, y: -933.77 }, image: { x: 970.7, y: 1535.5 } },
-                    b: { world: { x: -220, y: 6355 }, image: { x: 901.9, y: 340.2 } },
+                    a: { world: { x: 195.17, y: -933.77 }, image: { x: 985.2, y: 2126.8 } },
+                    b: { world: { x: -220, y: 6355 }, image: { x: 890.1, y: 474.3 } },
                 },
                 fadeHoldFraction: 0.6,
             },

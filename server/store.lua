@@ -260,6 +260,34 @@ function Dispatch.store.setUnitState(id, src, state, unit)
     return call
 end
 
+---Counts the calls `src` is actively committed to: attached, not yet cleared,
+---and on a call that is still live. This is what `Config.dispatch.maxActiveCalls`
+---is measured against.
+---
+---`clear` does not count. It is the last state in the walk and means the unit
+---has finished -- a unit that has cleared its last call must be able to take
+---the next one without waiting for the retention sweep to drop the old record.
+---Closed and expired calls do not count either, for the same reason.
+---@param src integer
+---@param exceptId integer|nil A call to ignore -- pass the call being advanced so re-advancing your own call is never blocked by itself.
+---@return integer count
+function Dispatch.store.countAttached(src, exceptId)
+    local key = tostring(src)
+    local now = GetGameTimer()
+    local count = 0
+
+    for id, call in pairs(byId) do
+        if id ~= exceptId then
+            local unit = call.units[key]
+            if unit and unit.state ~= 'clear' and Dispatch.calls.isLive(call, now) then
+                count = count + 1
+            end
+        end
+    end
+
+    return count
+end
+
 ---Detaches a source from every call it is attached to. Used on drop and on
 ---going off duty -- a unit that has left cannot still be en route.
 ---@param src integer

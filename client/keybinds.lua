@@ -60,8 +60,18 @@ QB.keybind.add({
         local wasAttached = Dispatch.state.myStateOn(call) ~= nil
 
         CreateThread(function()
-            local state = QB.callback.trigger('qbdispatch:respond', call.id)
-            if state == false or state == nil then return end
+            -- Two return values: the new state, and a reason when the server
+            -- refused. A nil `state` is a timed-out callback, NOT a refusal, so
+            -- it must stay silent -- inventing a reason for a dropped round trip
+            -- would tell the player something the server never said.
+            local state, reason = QB.callback.trigger('qbdispatch:respond', call.id)
+
+            if state == false then
+                if reason then QB.notify.send({ message = reason, type = 'error' }) end
+                return
+            end
+
+            if state == nil then return end
 
             -- Accepting routes you there; clearing drops the route. Both are the
             -- action the player just took, so neither needs a second keypress.
@@ -76,10 +86,20 @@ QB.keybind.add({
 
 QB.keybind.add({
     name = 'qbdispatch_toggle',
-    description = 'Dispatch: hide/show alerts',
+    description = 'Dispatch: hide/show the dispatch UI',
     defaultKey = Config.keybinds.toggle,
     onPressed = function()
         if not Dispatch.state.isActive() then return end
+
+        -- With the tablet open, this key means "get the dispatch UI off my
+        -- screen" -- so it closes the tablet (which is what holds NUI focus)
+        -- rather than silently hiding the feed behind it and leaving the player
+        -- still stuck in a focused overlay.
+        if Dispatch.state.data.tabletOpen then
+            Dispatch.ui.setTablet(false)
+            return
+        end
+
         Dispatch.state.setHidden(not Dispatch.state.data.hidden)
         Dispatch.ui.render()
     end,

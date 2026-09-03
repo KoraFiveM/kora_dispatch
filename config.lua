@@ -74,10 +74,29 @@ Config.units = {
     maxDistance = 0,    -- metres; 0 = whole map. Set >0 to only share nearby units.
 }
 
+-- --- response ---------------------------------------------------------------
+Config.dispatch = {
+    -- How many live calls one unit may be committed to at once. A unit at the
+    -- cap must clear (or drop) a call before accepting another, which is what
+    -- keeps a single officer from claiming every call on the board and leaving
+    -- them all unattended.
+    --
+    -- Counted per PLAYER, not per call: a call may still gather as many
+    -- responders as turn up. Only the accept is checked -- advancing en route ->
+    -- on scene -> clear is always allowed, or a capped unit could never release
+    -- the call holding it at the cap. `clear`, closed and expired calls do not
+    -- count. Set 0 to disable the cap entirely.
+    maxActiveCalls = 1,
+}
+
 -- --- feed -------------------------------------------------------------------
 Config.feed = {
     maxVisible = 4,          -- live cards shown at once before older ones roll off
     position = 'left-center',-- 'left-center' | 'top-left' | 'top-center'
+    -- Cards per page in the tablet's call list. The overlay feed above is a
+    -- rolling window (maxVisible) and is not paginated -- it is glanceable, not
+    -- browsable. The tablet is the browsable one.
+    pageSize = 8,
     -- Every other overlay in the framework has already claimed a corner: qbhud
     -- owns bottom-center/bottom-right/top-right, qblib toasts own top-right,
     -- qbinventory's item stack owns bottom-right, and the native minimap owns
@@ -102,31 +121,44 @@ Config.keybinds = {
 -- would exhaust it. The tablet renders its own map instead, and exactly one real
 -- blip exists at a time -- the route to the call you personally accepted.
 Config.map = {
-    -- Tile pyramid vendored under web/build/map/. 256px tiles, {z}/{x}/{y}.jpg,
-    -- zoom 0..3 (a 2048x2048 image at the deepest level).
-    tilePath = 'map/atlas',
-    minZoom = 0,
+    -- Tile pyramid vendored under web/build/map/. 256px tiles,
+    -- {z}/{x}/{y}.png, zoom 1..3 (2048x3072 at the deepest level).
+    --
+    -- This is the IN-GAME pause-map style -- the dark landmass and white road
+    -- network the player already knows -- rather than the bright stylised
+    -- "atlas" tourist map that shipped before. The atlas set is still vendored
+    -- at map/atlas (square, 2048x2048, .jpg, zoom 0..3); switching back is
+    -- tilePath + tileExtension + grid + a recalibration, nothing more.
+    tilePath = 'map/mainmap',
+    tileExtension = 'png',
+
+    -- Starts at 1, not 0. This tile set's zoom-0 tile squeezes the whole
+    -- 2:3 map into one 256x256 square, so it is not a uniform reduction of
+    -- zoom 1 and would render the map vertically squashed. It is not shipped.
+    minZoom = 1,
     maxZoom = 3,
     tileSize = 256,
+
+    -- Tiles across and down at maxZoom. This basemap is NOT square -- 8x12 --
+    -- so both axes have to be stated; a square pyramid can omit `grid`.
+    grid = { x = 8, y = 12 },
 
     -- World -> map projection, expressed as two reference points rather than
     -- opaque multipliers, so a server owner swapping in their own map image can
     -- recalibrate by standing on two landmarks and reading /dispatchcoords.
-    -- `image` coordinates are pixels at maxZoom (2048x2048 at zoom 3).
+    -- `image` coordinates are pixels at maxZoom (2048x3072 at zoom 3).
     --
     -- These two are far apart on both axes (Legion Square in the south, Paleto
     -- Bay in the far north) so the derived scale is accurate across the whole
     -- map rather than fitted to one region.
     --
-    -- The values come from the tile set's own coordinate system, and were
-    -- VERIFIED against the shipped imagery rather than trusted: decoding the
-    -- tiles and locating the largest inland body of water puts its centroid at
-    -- world (1081, 4094) once inverted through this projection, which is the
-    -- Alamo Sea to within about 100 metres. Ten land/water probe points across
-    -- the map agree. See docs/map.md.
+    -- Derived by registering this tile set's landmass against the previously
+    -- verified atlas set's, then VERIFIED by projecting nine known world
+    -- positions and checking each against the rendered imagery -- see
+    -- docs/map.md for both the method and the numbers.
     calibration = {
-        a = { world = { x = 195.17, y = -933.77 }, image = { x = 970.7,  y = 1535.5 } }, -- Legion Square
-        b = { world = { x = -220.0, y = 6355.0  }, image = { x = 901.9,  y = 340.2  } }, -- Paleto Bay
+        a = { world = { x = 195.17, y = -933.77 }, image = { x = 985.2, y = 2126.8 } }, -- Legion Square
+        b = { world = { x = -220.0, y = 6355.0  }, image = { x = 890.1, y = 474.3  } }, -- Paleto Bay
     },
 
     -- A call marker holds full opacity for this fraction of its life, then eases

@@ -118,8 +118,18 @@ export function makeProjection(map: MapConfig) {
                 y: a.world.y + (image.y - a.image.y) / scaleY,
             }
         },
-        /** Full basemap size in pixels at the deepest zoom. */
-        size: map.tileSize * 2 ** map.maxZoom,
+        /**
+         * Full basemap size in pixels at the deepest zoom.
+         *
+         * Two numbers, not one: the basemap is not necessarily square. The
+         * in-game-style pyramid is 8 tiles across and 12 down, and treating it
+         * as square put the initial camera a third of the map below the coast
+         * and let the tile grid ask for rows that do not exist.
+         */
+        size: {
+            width: map.tileSize * (map.grid?.x ?? 2 ** map.maxZoom),
+            height: map.tileSize * (map.grid?.y ?? 2 ** map.maxZoom),
+        },
     }
 }
 

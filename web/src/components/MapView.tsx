@@ -40,7 +40,7 @@ export function MapView({ map, config, calls, units, me, now, selected, onSelect
     // under the middle of the viewport. Keeping the camera in basemap space (not
     // world space) means the tile maths never has to invert the projection.
     const [scale, setScale] = useState(0.5)
-    const [centre, setCentre] = useState(() => ({ x: projection.size / 2, y: projection.size / 2 }))
+    const [centre, setCentre] = useState(() => ({ x: projection.size.width / 2, y: projection.size.height / 2 }))
     const [following, setFollowing] = useState(true)
 
     const drag = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null)
@@ -248,10 +248,23 @@ function TileGrid({
     scale: number
     viewport: { width: number; height: number }
 }) {
-    const full = map.tileSize * 2 ** map.maxZoom
-    const tilesPerSide = 2 ** zoom
-    // How many basemap pixels one tile covers at this level.
-    const tileSpan = full / tilesPerSide
+    // Tile counts are per axis. The in-game-style basemap is 8 tiles across and
+    // 12 down, so a single `tilesPerSide` would request a whole column of
+    // non-existent tiles on one axis and clip the map on the other.
+    const gridX = map.grid?.x ?? 2 ** map.maxZoom
+    const gridY = map.grid?.y ?? 2 ** map.maxZoom
+    const levels = 2 ** (map.maxZoom - zoom)
+
+    // Tiles are 1:1 with the source at maxZoom, and each level out halves the
+    // count on both axes -- rounded UP, because an odd count still needs the
+    // trailing half-tile drawn.
+    const tilesX = Math.ceil(gridX / levels)
+    const tilesY = Math.ceil(gridY / levels)
+
+    // How many basemap pixels one tile covers at this level. Derived from the
+    // tile size and the level, not from a full-size division, so a non-square
+    // grid keeps square tiles.
+    const tileSpan = map.tileSize * levels
     const screenSpan = tileSpan * scale
 
     const left = centre.x - viewport.width / 2 / scale
@@ -259,9 +272,9 @@ function TileGrid({
 
     const OVERSCAN = 1
     const firstX = Math.max(0, Math.floor(left / tileSpan) - OVERSCAN)
-    const lastX = Math.min(tilesPerSide - 1, Math.floor((left + viewport.width / scale) / tileSpan) + OVERSCAN)
+    const lastX = Math.min(tilesX - 1, Math.floor((left + viewport.width / scale) / tileSpan) + OVERSCAN)
     const firstY = Math.max(0, Math.floor(top / tileSpan) - OVERSCAN)
-    const lastY = Math.min(tilesPerSide - 1, Math.floor((top + viewport.height / scale) / tileSpan) + OVERSCAN)
+    const lastY = Math.min(tilesY - 1, Math.floor((top + viewport.height / scale) / tileSpan) + OVERSCAN)
 
     const tiles = []
     for (let x = firstX; x <= lastX; x++) {
@@ -269,7 +282,7 @@ function TileGrid({
             tiles.push(
                 <img
                     key={`${zoom}/${x}/${y}`}
-                    src={`./${map.tilePath}/${zoom}/${x}/${y}.jpg`}
+                    src={`./${map.tilePath}/${zoom}/${x}/${y}.${map.tileExtension ?? "jpg"}`}
                     alt=""
                     draggable={false}
                     loading="eager"
@@ -296,10 +309,13 @@ function TileGrid({
                         top: Math.round((y * tileSpan - top) * scale),
                         width: Math.ceil(screenSpan) + 1,
                         height: Math.ceil(screenSpan) + 1,
-                        // The atlas is a bright daytime map; this settles it into
-                        // the charcoal palette so markers stay the loudest thing
-                        // on screen.
-                        filter: "brightness(0.62) saturate(0.72) contrast(1.05)",
+                        // No colour correction. The shipped basemap is the
+                        // in-game pause map, which is already a dark charcoal
+                        // render that markers read cleanly against. The heavy
+                        // brightness/saturation filter this used to carry was
+                        // there to tame the bright stylised atlas; applied to
+                        // this basemap it only crushes the road network into
+                        // the landmass.
                     }}
                 />,
             )

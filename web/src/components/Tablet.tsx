@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
-import { MapPin, Navigation, Search, X } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { ChevronLeft, ChevronRight, MapPin, Navigation, Search, X } from "lucide-react"
 
 import { CallCard } from "./CallCard"
 import { KeyChip } from "./KeyChip"
@@ -19,6 +19,12 @@ const FILTERS: { key: Filter; label: string }[] = [
 ]
 
 /**
+ * Fallback page size, used only until the bootstrap config lands (or if a server
+ * removes the key). Config.feed.pageSize is the real source.
+ */
+const DEFAULT_PAGE_SIZE = 8
+
+/**
  * The large view: call list, map, and the detail of whatever is selected.
  *
  * This is the only surface that takes NUI focus, and it is deliberately optional
@@ -29,6 +35,7 @@ export function Tablet() {
     const { state, now } = useDispatch()
     const [filter, setFilter] = useState<Filter>("active")
     const [query, setQuery] = useState("")
+    const [page, setPage] = useState(0)
 
     // Every hook runs before the early return below: the tablet mounts and
     // unmounts constantly, and a conditional hook would change the hook count
@@ -44,6 +51,23 @@ export function Tablet() {
             )
         })
     }, [state.calls, state.me, filter, query, now])
+
+    // Paginated rather than one unbounded scroll. Config.history.max retains 50
+    // calls per service, so a busy shift's "History" tab was a 50-card scroll
+    // with no sense of position in it.
+    const pageSize = state.config?.feed?.pageSize ?? DEFAULT_PAGE_SIZE
+    const pageCount = Math.max(1, Math.ceil(calls.length / pageSize))
+
+    // Clamp instead of resetting to 0: calls arrive and expire while the tablet
+    // is open, and snapping the reader back to page one every time the list
+    // shrinks would make the last page unreadable during a busy shift.
+    const safePage = Math.min(page, pageCount - 1)
+    const visible = calls.slice(safePage * pageSize, safePage * pageSize + pageSize)
+
+    // Changing filter or search is a new list, so page one is the right place to
+    // land. Done in an effect rather than in the onChange handlers so the two
+    // controls cannot drift apart as more are added.
+    useEffect(() => { setPage(0) }, [filter, query])
 
     if (!state.active || !state.tabletOpen) return null
 
@@ -96,7 +120,7 @@ export function Tablet() {
                                         : "Nothing matches this filter."}
                                 </p>
                             ) : (
-                                calls.map((call) => (
+                                visible.map((call) => (
                                     <CallCard
                                         key={call.id}
                                         call={call}
@@ -109,6 +133,13 @@ export function Tablet() {
                                 ))
                             )}
                         </div>
+
+                        <Pager
+                            page={safePage}
+                            pageCount={pageCount}
+                            total={calls.length}
+                            onPage={setPage}
+                        />
                     </aside>
 
                     <div className="min-h-0">
@@ -143,6 +174,66 @@ export function Tablet() {
                     </span>
                 </footer>
             </div>
+        </div>
+    )
+}
+
+/**
+ * Pager for the call list.
+ *
+ * Renders nothing at all when everything fits on one page: an inert "1 of 1"
+ * control on a quiet shift is chrome that only ever reports its own
+ * pointlessness. The count stays visible because "17 calls" is the useful part
+ * even when there is only one page of them.
+ */
+function Pager({ page, pageCount, total, onPage }: {
+    page: number
+    pageCount: number
+    total: number
+    onPage: (page: number) => void
+}) {
+    if (total === 0) return null
+
+    const button = [
+        "flex h-6 w-6 items-center justify-center rounded-sm text-muted-foreground",
+        "transition-colors duration-fast hover:bg-surface-hover hover:text-foreground",
+        "disabled:pointer-events-none disabled:opacity-35",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    ].join(" ")
+
+    return (
+        <div className="flex items-center gap-2 border-t border-border px-3 py-1.5">
+            <p className="text-[11px] leading-4 text-muted-foreground">
+                {total} {total === 1 ? "call" : "calls"}
+            </p>
+
+            {pageCount > 1 ? (
+                <div className="ml-auto flex items-center gap-1">
+                    <button
+                        type="button"
+                        onClick={() => onPage(page - 1)}
+                        disabled={page <= 0}
+                        aria-label="Previous page"
+                        className={button}
+                    >
+                        <ChevronLeft size={14} aria-hidden />
+                    </button>
+
+                    <p aria-live="polite" className="min-w-[52px] text-center text-[11px] leading-4 tabular-nums text-muted-foreground">
+                        {page + 1} of {pageCount}
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() => onPage(page + 1)}
+                        disabled={page >= pageCount - 1}
+                        aria-label="Next page"
+                        className={button}
+                    >
+                        <ChevronRight size={14} aria-hidden />
+                    </button>
+                </div>
+            ) : null}
         </div>
     )
 }

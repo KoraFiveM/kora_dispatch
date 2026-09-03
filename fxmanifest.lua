@@ -60,8 +60,11 @@ files {
     -- are silently never served: index.html loads, its <script> 404s, React
     -- never mounts, and the UI is simply invisible with no error anywhere.
     'web/build/assets/**/*',
-    -- Vendored basemap tile pyramid (z0-z3), served to the NUI as
-    -- nui://qbdispatch/web/build/map/atlas/{z}/{x}/{y}.jpg.
+    -- Vendored basemap tile pyramids, served to the NUI as
+    -- nui://qbdispatch/web/build/map/{style}/{z}/{x}/{y}.{ext} -- 'mainmap'
+    -- (the in-game pause map, z1-z3, .png) is what Config.map ships pointing
+    -- at; 'atlas' (the stylised tourist map, z0-z3, .jpg) is kept as the
+    -- documented alternative. See docs/map.md.
     --
     -- '**/*' is the RECURSIVE form, and the only one FiveM honours for a nested
     -- tree: CFX's own resources ship 'nui/**/*', 'panel/**/*' and

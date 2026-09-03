@@ -14,8 +14,14 @@ benefits from the real map.
 
 ## The tiles
 
-`web/build/map/atlas/{z}/{x}/{y}.jpg` — a 256px tile pyramid, zoom 0 to 3, 85
-files and about 1.8 MB. Zoom 3 is a 2048×2048 image of San Andreas.
+`web/build/map/mainmap/{z}/{x}/{y}.png` -- 256px tiles, zoom 1 to 3, 126 files
+and about 4.8 MB. Zoom 3 is a 2048x3072 image of San Andreas.
+
+This is the **in-game pause map**: dark landmass, white road network, the thing
+the player has already spent a hundred hours reading. The stylised "atlas"
+tourist map that shipped before is still vendored at `web/build/map/atlas`
+(square, 2048x2048, `.jpg`, zoom 0 to 3, 1.8 MB) and switching back is four
+config values plus a recalibration -- see below.
 
 A pyramid rather than one large image because it zooms for free, needs no
 build-time image tooling, and loads only the six to twelve tiles a viewport can
@@ -23,11 +29,24 @@ actually see rather than the whole map every frame.
 
 `web/build/` is committed, so the tiles ship with the resource and there is no
 build step at resource-start. `vite.config.ts` sets `emptyOutDir: false` for
-exactly this reason — a normal Vite build would delete them.
+exactly this reason -- a normal Vite build would delete them.
 
-The atlas (stylised) style is used rather than satellite: it survives the
-`brightness(0.62) saturate(0.72)` filter that settles it into the charcoal
-palette, and keeps markers the loudest thing on screen. Satellite goes to mud.
+### Two things about this set that are not true of a normal tile pyramid
+
+**It is not square.** 8 tiles across and 12 down at zoom 3. `Config.map.grid`
+states both axes, and `makeProjection` returns `size` as `{width, height}`
+rather than one number. A square pyramid can omit `grid` and gets
+`2 ** maxZoom` on both axes.
+
+**`minZoom` is 1, not 0.** The upstream set has a zoom-0 tile, but it squeezes
+the whole 2:3 map into a single 256x256 square, so it is not a uniform reduction
+of zoom 1 -- rendering it would show the map vertically squashed. It is not
+vendored, and `minZoom = 1` means nothing asks for it.
+
+No colour correction is applied to the tiles. The old
+`brightness(0.62) saturate(0.72)` filter existed to settle the bright atlas into
+the charcoal palette; on this basemap it only crushes the road network into the
+landmass, so `TileGrid` paints the tiles as they are.
 
 ## The projection
 
@@ -36,8 +55,8 @@ coordinate with its pixel position at maximum zoom:
 
 ```lua
 calibration = {
-    a = { world = { x = 195.17, y = -933.77 }, image = { x = 970.7, y = 1535.5 } }, -- Legion Square
-    b = { world = { x = -220.0, y = 6355.0  }, image = { x = 901.9, y = 340.2  } }, -- Paleto Bay
+    a = { world = { x = 195.17, y = -933.77 }, image = { x = 985.2, y = 2126.8 } }, -- Legion Square
+    b = { world = { x = -220.0, y = 6355.0  }, image = { x = 890.1, y = 474.3  } }, -- Paleto Bay
 }
 ```
 
@@ -45,29 +64,61 @@ Two points rather than opaque scale/offset multipliers, so recalibrating for a
 different image is a matter of standing somewhere recognisable rather than
 reverse-engineering a transform.
 
-They are far apart on both axes — Legion Square in the south, Paleto Bay in the
-far north — so the derived scale stays accurate across the whole map instead of
+They are far apart on both axes -- Legion Square in the south, Paleto Bay in the
+far north -- so the derived scale stays accurate across the whole map instead of
 being fitted to one region.
+
+### How these were derived
+
+Not guessed, and not carried over: the atlas numbers do not transfer, because
+the two sets differ in canvas size, aspect and margin.
+
+1. Both pyramids were decoded at zoom 3 and reduced to a **land mask** -- the
+   atlas by rejecting its blue water, this set by flood-filling the near-black
+   ocean inward from the image border, which stops at the light-grey coastal
+   glow and leaves the landmass as the black region inside it.
+2. The two land bounding boxes give the atlas-to-this-set transform. Measured
+   independently per axis they came out at 1.3786 and 1.3864 -- 0.6% apart,
+   which is threshold noise at the coastline, since a to-scale render can only
+   have one scale. The mean, 1.38251, was used uniformly, with the offsets
+   fitted so the two bounding boxes share a centre.
+3. Composing that with the atlas's already-verified world-to-pixel calibration
+   gives the numbers above.
 
 ### How these were verified
 
-Not assumed. The shipped tiles were decoded and the largest inland body of water
-located by flood fill; inverting its centroid through this projection gives world
-`(1081, 4094)`, which is the Alamo Sea to within about 100 metres. Ten further
-land/water probe points across the map (Legion Square, LS Airport, Sandy Shores,
-Mount Chiliad, Paleto Bay, Grapeseed, Vinewood Hills, and three open-ocean
-points) all land on the right kind of terrain.
+Nine known world positions were projected through the result and each checked
+against the rendered imagery: Legion Square, LS International, Del Perro Pier,
+Fort Zancudo, Sandy Shores, Grapeseed, Mount Chiliad, Paleto Bay, and the
+published centre of the Alamo Sea -- which lands dead centre on the lake the
+imagery draws.
+
+Two independent numeric checks agree:
+
+- The two derived axis scales are 0.22906 and 0.22671 px per world unit, equal
+  in magnitude to within 1%, as an isotropic render requires.
+- Inverting the landmass bounding box gives world `x` in `[-3263, 3953]` and `y`
+  in `[-3568, 7115]`, which is San Andreas' actual extent.
+
+Note that the atlas's flood-fill check -- isolate the largest inland water body
+and invert its centroid -- **does not work on this basemap**. The coastal glow
+and the inland lakes are drawn in the same grey band and are connected through
+the river mouths, so the fill escapes the Alamo Sea into the open ocean and
+reports a centroid nearly 3000 units out. The failure is in the measuring
+technique, not the projection; the landmark checks above are what stands in for
+it here.
 
 ## Recalibrating for a different basemap
 
-1. Drop your tiles under `web/build/map/<name>/{z}/{x}/{y}.jpg` and point
-   `Config.map.tilePath` at it. Set `minZoom`/`maxZoom`/`tileSize` to match.
+1. Drop your tiles under `web/build/map/<name>/{z}/{x}/{y}.<ext>` and point
+   `Config.map.tilePath` at it. Set `tileExtension`, `minZoom`/`maxZoom`,
+   `tileSize`, and `grid` (omit `grid` only if the pyramid is square).
 2. In game, stand somewhere unmistakable and run `/dispatchcoords`. It prints
    your world position alongside the pixel the current calibration projects it
    to.
 3. Open your deepest-zoom image, find the pixel that landmark actually sits on,
    and record the pair.
-4. Repeat far away on both axes — the north and south ends of the map, not two
+4. Repeat far away on both axes -- the north and south ends of the map, not two
    spots in the city.
 5. Put both pairs into `Config.map.calibration` and restart.
 

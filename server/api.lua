@@ -180,6 +180,23 @@ function Dispatch.api.setUnitState(src, id, state)
         target = state
     end
 
+    -- Concurrency cap. Only the ACCEPT is capped -- `not existing` and a target
+    -- inside the state walk. Advancing (on scene, clear) and detaching must
+    -- always be allowed, or a unit that hit the cap could never clear the call
+    -- holding it there.
+    --
+    -- Enforced here rather than in store.setUnitState because the store is the
+    -- low-level write and is also what detachAll and the retention sweep drive;
+    -- a policy check belongs on the authoritative entry point, not under it.
+    local limit = Config.dispatch and Config.dispatch.maxActiveCalls
+    if target and not existing and limit and limit > 0 then
+        if Dispatch.store.countAttached(src, id) >= limit then
+            return false, limit == 1
+                and 'you are already en route to a call'
+                or ('you are already en route to %d calls'):format(limit)
+        end
+    end
+
     local updated, err = Dispatch.store.setUnitState(id, src, target, unit)
     if not updated then return false, err end
 
