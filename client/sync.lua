@@ -2,11 +2,17 @@
 -- Nothing here polls; every update is server-pushed.
 
 Dispatch = Dispatch or {}
+local hydrating = false
 
 ---Pulls our service, config and the existing call backlog. Called on login, on
 ---job/duty change, and on resource start -- so coming on duty mid-shift shows
 ---the calls already in progress rather than an empty feed.
 local function hydrate()
+    -- The player-loaded, job-update, and duty events often arrive together.
+    -- A hydrate is a full replacement, so one in-flight request already has
+    -- all the state a later request would fetch.
+    if hydrating then return end
+    hydrating = true
     local data = QB.callback.trigger('qbdispatch:hydrate')
 
     if type(data) ~= 'table' or not data.service then
@@ -17,6 +23,7 @@ local function hydrate()
         Dispatch.state.setService(nil)
         Dispatch.blip.clear()
         Dispatch.ui.render()
+        hydrating = false
         return
     end
 
@@ -25,6 +32,7 @@ local function hydrate()
     Dispatch.state.replaceAll(data.calls)
     Dispatch.theme.refresh()
     Dispatch.ui.render()
+    hydrating = false
 end
 
 Dispatch.hydrate = function() CreateThread(hydrate) end
