@@ -173,8 +173,8 @@ on the same server see different accents at the same moment.
 | `exports.qbdispatch:getService()` | This player's service, or `nil` off duty. |
 | `exports.qbdispatch:getRoutedCall()` | The call this player has a route to, or `nil`. |
 
-Accent tokens are derived by `QB.theme.tokens()` in qblib, so every framework
-surface stays consistent and the HSL maths lives in one place.
+The imported qbtheme bridge derives and applies the full token map while
+retaining this per-service primary override.
 
 ---
 

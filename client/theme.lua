@@ -19,10 +19,8 @@ end
 
 ---Applies an accent colour to the dispatch UI.
 ---
----The HSL derivation (hover, pressed, soft, border, and a contrast-safe
----foreground) is NOT redone here -- QB.theme.tokens already implements exactly
----the maths qblib's own NUI uses, so every framework surface stays consistent
----and there is one place to change it.
+---The imported qbtheme bridge owns validation and token derivation; this module
+---only selects a per-service primary override.
 ---@param hex string|nil `#RRGGBB`; nil restores the service default.
 ---@return boolean ok, string|nil error
 function Dispatch.theme.set(hex)
@@ -37,12 +35,11 @@ function Dispatch.theme.set(hex)
 
     current = hex
 
-    local ok, tokens = pcall(function() return QB.theme.tokens(hex) end)
+    local ok, tokens = pcall(QBTheme.apply, hex)
     if not ok or type(tokens) ~= 'table' then
         return false, 'failed to derive theme tokens'
     end
 
-    Dispatch.ui.send('qbdispatch:theme', tokens)
     return true
 end
 

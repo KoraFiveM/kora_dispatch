@@ -8,7 +8,8 @@
 -- this resource's page fetches https://qbdispatch/<name>: a permanent 404. The
 -- same rationale is documented at the head of qbhud/client/hud.lua.
 --
--- QB.cache / QB.theme / QB.timers / QB.blips / QB.keybind stay on the proxy --
+-- QB.cache / QB.timers / QB.blips / QB.keybind stay on the proxy; qbtheme is
+-- imported directly --
 -- they are pure Lua and touch no NUI native.
 
 Dispatch = Dispatch or {}

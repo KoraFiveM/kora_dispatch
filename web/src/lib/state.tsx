@@ -5,7 +5,7 @@ import { fetchNui, isBrowserEnv } from "./fetchNui"
 import { useNuiEvent } from "./useNuiEvent"
 import { GameClock } from "./dispatch"
 import { devState } from "./dev"
-import type { DispatchState, ThemeTokens } from "./types"
+import type { DispatchState } from "./types"
 
 const EMPTY: DispatchState = {
     active: false,
@@ -38,18 +38,6 @@ export function DispatchProvider({ children }: { children: ReactNode }) {
         if (!next) return
         clock.current.sync(next.now)
         setState(next)
-    })
-
-    useNuiEvent<ThemeTokens>("qbdispatch:theme", (tokens) => {
-        if (!tokens) return
-        // Applied as CSS custom properties rather than rebuilt in JS: the HSL
-        // derivation already happened in Lua (QB.theme.tokens), and setting the
-        // variables means every component that uses a semantic token recolours
-        // at once with no re-render.
-        const root = document.documentElement.style
-        for (const [key, value] of Object.entries(tokens)) {
-            if (typeof value === "string") root.setProperty(`--${key}`, value)
-        }
     })
 
     // Announce the frame is mounted. SendNUIMessage is postMessage-like, not a

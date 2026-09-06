@@ -73,6 +73,7 @@ export function Tablet() {
 
     const config = state.config
     const selected = state.calls.find((call) => call.id === state.selected)
+    const colleagueCount = state.units.filter((unit) => unit.src !== state.me?.src).length
 
     return (
         <div className="pointer-events-auto fixed inset-0 z-overlay flex items-center justify-center bg-black/[.68] p-4">
@@ -170,7 +171,7 @@ export function Tablet() {
                         Respond from the feed
                     </span>
                     <span className="ml-auto tabular-nums">
-                        {state.units.length} colleague{state.units.length === 1 ? "" : "s"} on duty
+                        {colleagueCount} colleague{colleagueCount === 1 ? "" : "s"} on duty
                     </span>
                 </footer>
             </div>

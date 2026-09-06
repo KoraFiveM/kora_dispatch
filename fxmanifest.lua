@@ -9,7 +9,8 @@ description 'Job-agnostic dispatch: call lifecycle, keyboard-driven alert feed, 
 
 -- Every job resource that raises calls depends on this one, so it has to be
 -- running before them. qbcore supplies the job/duty indexes the recipient
--- resolution reads; qblib supplies keybinds, timers, sound, theme and blips.
+-- resolution reads; qblib supplies keybinds, timers, sound and blips.
+dependency 'qbtheme'
 dependency 'qblib'
 dependency 'qbcore'
 
@@ -42,6 +43,7 @@ server_scripts {
 -- inbound events and must come after both; keybinds/exports come last because
 -- they are entry points into everything above.
 client_scripts {
+    '@qbtheme/client/bridge.lua',
     'client/state.lua',
     'client/ui.lua',
     'client/theme.lua',
