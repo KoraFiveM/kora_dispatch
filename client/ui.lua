@@ -53,7 +53,7 @@ local function appDefinition()
     return {
         id = 'qbdispatch:tablet', title = (S.config and S.config.label) or 'Dispatch',
         description = S.unit and ((S.unit.callsign and S.unit.callsign .. ' · ' or '') .. (S.unit.name or ('Unit ' .. S.unit.src))) or 'Dispatch tablet',
-        icon = 'radio', width = 1220, height = 800,
+        icon = 'radio', accent = Dispatch.theme.get(), width = 1220, height = 800,
         navigation = {
             { id = 'queue', label = 'Active calls', icon = 'radio', badge = #active,
                 content = { title = 'Active calls', description = 'Select a call to inspect it, respond or set a route.',

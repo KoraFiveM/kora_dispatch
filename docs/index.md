@@ -208,8 +208,8 @@ on the same server see different accents at the same moment.
 | `exports.qbdispatch:getService()` | This player's service, or `nil` off duty. |
 | `exports.qbdispatch:getRoutedCall()` | The call this player has a route to, or `nil`. |
 
-The imported qbtheme bridge derives and applies the full token map while
-retaining this per-service primary override.
+qblib applies the override in the shared AppShell's own browser frame and
+restores the configured qbtheme palette when the tablet closes.
 
 ---
 

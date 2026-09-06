@@ -45,7 +45,6 @@ server_scripts {
 -- projects it through qblib's shared AppShell. sync.lua wires inbound events
 -- and keybinds/exports are the entry points into everything above.
 client_scripts {
-    '@qbtheme/client/bridge.lua',
     'client/state.lua',
     'client/ui.lua',
     'client/theme.lua',

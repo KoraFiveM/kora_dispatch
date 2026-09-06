@@ -19,8 +19,8 @@ end
 
 ---Applies an accent colour to the dispatch UI.
 ---
----The imported qbtheme bridge owns validation and token derivation; this module
----only selects a per-service primary override.
+---qblib validates and applies the accent in the shared AppShell's own frame;
+---this resource only selects the per-service primary override.
 ---@param hex string|nil `#RRGGBB`; nil restores the service default.
 ---@return boolean ok, string|nil error
 function Dispatch.theme.set(hex)
@@ -35,11 +35,12 @@ function Dispatch.theme.set(hex)
 
     current = hex
 
-    local ok, tokens = pcall(QBTheme.apply, hex)
+    local ok, tokens = pcall(function() return QB.theme.tokens(hex) end)
     if not ok or type(tokens) ~= 'table' then
         return false, 'failed to derive theme tokens'
     end
 
+    if Dispatch.state.data.tabletOpen then Dispatch.ui.render() end
     return true
 end
 
