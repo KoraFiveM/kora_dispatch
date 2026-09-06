@@ -7,77 +7,44 @@ Dispatch = Dispatch or {}
 
 if not Config.compat.legacyInbound and not Config.compat.coreAlerts then return end
 
----Legacy alerts carry coords and text in an argument order that is NOT stable
----across the ecosystem, so sniff rather than assume:
----
----  * real qb-policejob fires `police:client:policeAlert(coords, text)`
----  * qbcore's own compat table fires it as `(message, coords)`
----
----Both shapes are live on this server at once (a vendored legacy resource and
----the modern core), and getting it wrong silently swaps a call's title with its
----coordinates. A table/vector first argument is coords; a string is the message.
----@param a any
----@param b any
----@return string|nil message, table|nil coords
-local function sniff(a, b)
-    if type(a) == 'string' then return a, Dispatch.calls.toCoords(b) end
-    local coords = Dispatch.calls.toCoords(a)
-    if coords then return type(b) == 'string' and b or nil, coords end
-    return nil, nil
-end
-
----@param src integer
----@return table|nil
-local function coordsOfSource(src)
-    local ped = GetPlayerPed(src)
-    if not ped or ped == 0 then return nil end
-    local coords = GetEntityCoords(ped)
-    return { x = coords.x, y = coords.y, z = coords.z }
-end
-
 if Config.compat.legacyInbound then
-    -- qb-policejob's server-side alert. The caller's own position is used when
-    -- the event carries none, which is how the real resource behaves.
-    RegisterNetEvent('police:server:policeAlert', function(a, b)
+    -- Compatibility keeps the old event names, not their trust model. The
+    -- client payload is ignored and each event selects one fixed, throttled
+    -- incident whose coordinates are derived from the reporter's ped.
+    local compatibilityAlerts = {
+        ['qbdispatch:compat:police'] = {
+            jobTypes = { 'leo' }, code = '10-13', title = 'Officer Alert',
+            message = 'An officer requested assistance.', priority = 1, icon = 'siren',
+            requiredJobType = 'leo',
+        },
+        ['qbdispatch:compat:ambulance'] = {
+            jobTypes = { 'ems' }, code = '10-52', title = 'Medical Emergency',
+            message = 'A medical emergency was reported.', priority = 1, icon = 'heart-pulse',
+        },
+        ['qbdispatch:compat:doctor'] = {
+            jobTypes = { 'ems' }, code = '10-51', title = 'Doctor Requested',
+            message = 'A doctor is needed at the hospital.', priority = 3, icon = 'stethoscope',
+        },
+    }
+
+    local owner = GetCurrentResourceName()
+    for key, definition in pairs(compatibilityAlerts) do
+        local ok, err = Dispatch.ingress.register(key, definition, owner)
+        if not ok then print(('^3[qbdispatch]^7 could not register compatibility alert %s: %s'):format(key, err)) end
+    end
+
+    RegisterNetEvent('police:server:policeAlert', function()
         local src = source
-        local message, coords = sniff(a, b)
-        Dispatch.api.createCall({
-            jobTypes = { 'leo' },
-            code = '10-13',
-            title = 'Officer Alert',
-            message = message or 'An officer requested assistance.',
-            coords = coords or coordsOfSource(src),
-            priority = 1,
-            icon = 'siren',
-            data = { legacy = 'police:server:policeAlert', requester = src },
-        })
+        Dispatch.ingress.create(src, 'qbdispatch:compat:police')
     end)
 
-    RegisterNetEvent('hospital:server:ambulanceAlert', function(a, b)
+    RegisterNetEvent('hospital:server:ambulanceAlert', function()
         local src = source
-        local message, coords = sniff(a, b)
-        Dispatch.api.createCall({
-            jobTypes = { 'ems' },
-            code = '10-52',
-            title = 'Medical Emergency',
-            message = message or 'A medical emergency was reported.',
-            coords = coords or coordsOfSource(src),
-            priority = 1,
-            icon = 'heart-pulse',
-            data = { legacy = 'hospital:server:ambulanceAlert', requester = src },
-        })
+        Dispatch.ingress.create(src, 'qbdispatch:compat:ambulance')
     end)
 
     RegisterNetEvent('hospital:server:SendDoctorAlert', function()
-        Dispatch.api.createCall({
-            jobTypes = { 'ems' },
-            code = '10-51',
-            title = 'Doctor Requested',
-            message = 'A doctor is needed at the hospital.',
-            priority = 3,
-            icon = 'stethoscope',
-            data = { legacy = 'hospital:server:SendDoctorAlert' },
-        })
+        Dispatch.ingress.create(source, 'qbdispatch:compat:doctor')
     end)
 end
 

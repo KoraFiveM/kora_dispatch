@@ -9,6 +9,7 @@ local M = {}
 
 function M.install()
     local clock = 0
+    local invokingResource
 
     local eventHandlers = {}
     local netHandlers = {}
@@ -43,7 +44,7 @@ function M.install()
     function _G.RegisterCommand(name, cb) commands[name] = cb end
     function _G.CreateThread(fn) fn() end
     function _G.Wait(_) end
-    function _G.GetInvokingResource() return nil end
+    function _G.GetInvokingResource() return invokingResource end
     function _G.GetCurrentResourceName() return 'qbdispatch' end
     function _G.GetPlayerPed(src) return 1000 + src end
     function _G.GetEntityCoords(_) return { x = 100.0, y = 200.0, z = 30.0 } end
@@ -143,6 +144,11 @@ function M.install()
     })
 
     _G.QB = {
+        util = {
+            isFiniteNumber = function(value)
+                return type(value) == 'number' and value == value and value ~= math.huge and value ~= -math.huge
+            end,
+        },
         timers = {
             setInterval = function(fn, ms)
                 intervals[#intervals + 1] = { fn = fn, ms = ms }
@@ -150,6 +156,21 @@ function M.install()
             end,
         },
         callback = { register = function() end, trigger = function() end },
+        resources = {
+            serverRegistry = function(onDispose)
+                local owners = {}
+                AddEventHandler('onResourceStop', function(resource)
+                    for id, owner in pairs(owners) do
+                        if owner == resource then owners[id] = nil; onDispose(id) end
+                    end
+                end)
+                return {
+                    track = function(resource, id) owners[id] = resource end,
+                    untrack = function(id) local owner = owners[id]; owners[id] = nil; return owner end,
+                    owner = function(id) return owners[id] end,
+                }
+            end,
+        },
     }
 
     return {
@@ -163,6 +184,7 @@ function M.install()
         ---Advances the driven clock.
         advance = function(ms) clock = clock + ms end,
         now = function() return clock end,
+        setInvokingResource = function(resource) invokingResource = resource end,
 
         ---Puts a ped into a vehicle for the unit-snapshot path.
         setVehicle = function(src, vehicle, vehicleType)

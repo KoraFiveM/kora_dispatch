@@ -14,6 +14,7 @@ dofile('shared/calls.lua')
 dofile('server/store.lua')
 dofile('server/recipients.lua')
 dofile('server/api.lua')
+dofile('server/ingress.lua')
 dofile('server/compat.lua')
 
 net.setPlayer(1, 'police', true, { name = 'Jane Doe' })
@@ -30,7 +31,7 @@ h.test('the legacy police alert becomes a leo call', function()
 
     local call = newest('leo')
     h.assertTrue(call ~= nil, 'a call should have been raised')
-    h.assertEqual(call.message, 'Shots fired at the bank', 'the legacy text becomes the message')
+    h.assertEqual(call.message, 'An officer requested assistance.', 'untrusted legacy text is ignored')
     h.assertEqual(call.service, 'leo', 'routed to law enforcement')
     h.assertEqual(call.priority, 1, 'an officer alert is critical')
 end)
@@ -46,27 +47,20 @@ h.test('the legacy ambulance alert becomes an ems call', function()
     h.assertEqual(#Dispatch.api.getCalls({ service = 'leo' }), 0, 'and only to EMS')
 end)
 
-h.test('both legacy argument orders are handled', function()
-    -- Real qb-policejob fires (coords, text); qbcore's own compat table fires
-    -- (message, coords). Both are live on this server at once, and getting it
-    -- wrong silently swaps a call's description with its coordinates.
+h.test('legacy payload coordinates and presentation are ignored', function()
     Dispatch.store._reset()
+    Dispatch.ingress._resetCooldowns()
     _G.source = 1
 
     TriggerEvent('police:server:policeAlert', 'message first', { x = 1, y = 2, z = 3 })
     local a = newest('leo')
-    h.assertEqual(a.message, 'message first', 'string-first form: the string is the message')
-    h.assertEqual(a.coords.x, 1.0, 'and the table is the coordinates')
-
-    Dispatch.store._reset()
-    TriggerEvent('police:server:policeAlert', { x = 7, y = 8, z = 9 }, 'coords first')
-    local b = newest('leo')
-    h.assertEqual(b.message, 'coords first', 'coords-first form: the string is still the message')
-    h.assertEqual(b.coords.x, 7.0, 'and the table is still the coordinates')
+    h.assertEqual(a.message, 'An officer requested assistance.', 'registered presentation wins')
+    h.assertEqual(a.coords.x, 100.0, 'the server-observed reporter position wins')
 end)
 
 h.test('a legacy alert with no coordinates falls back to the caller position', function()
     Dispatch.store._reset()
+    Dispatch.ingress._resetCooldowns()
     _G.source = 1
     TriggerEvent('police:server:policeAlert', 'no coords given')
 

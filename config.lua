@@ -89,6 +89,32 @@ Config.dispatch = {
     maxActiveCalls = 1,
 }
 
+-- --- player-originated alert ingress ---------------------------------------
+--
+-- A gameplay resource can register a fixed alert type and then raise it for a
+-- player through `createPlayerCall`. The player supplies neither presentation
+-- nor coordinates: qbdispatch reads their networked ped position and reuses the
+-- registered definition. This is the safe bridge for client-observed incidents
+-- such as shots fired; fully server-observed incidents keep using createCall.
+Config.ingress = {
+    defaultCooldown = 30000, -- ms per player and registered alert type
+    minimumCooldown = 1000,  -- registrations cannot accidentally disable throttling
+    maxLiveCalls = 100,      -- public-ingress calls allowed live across all services
+    maxRegisteredTypes = 128, -- bounds registry/cooldown state on highly modular servers
+}
+
+-- `createCall` is the unrestricted server-to-server API: its caller chooses
+-- wording, service and coordinates. Keep that power with known first-party
+-- resources. Add a resource name here when installing another trusted server
+-- script that intentionally raises free-form dispatch calls.
+Config.trustedCallers = {
+    qbdispatch = true,
+    qbcore = true,
+    qbpolice = true,
+    qbambulance = true,
+    qbbusinesses = true,
+}
+
 -- --- feed -------------------------------------------------------------------
 Config.feed = {
     maxVisible = 4,          -- live cards shown at once before older ones roll off

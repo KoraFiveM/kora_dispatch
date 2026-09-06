@@ -76,6 +76,9 @@ Dispatch.api.push = push
 ---@return integer|string recipientCount when a call was created, or the error
 function Dispatch.api.createCall(payload)
     local origin = GetInvokingResource() or GetCurrentResourceName()
+    if Config.trustedCallers and Config.trustedCallers[origin] ~= true then
+        return false, ('resource %q is not allowed to create free-form dispatch calls'):format(origin)
+    end
 
     local normalised, err = Dispatch.calls.normalise(payload, {
         priorities = Config.priorities,

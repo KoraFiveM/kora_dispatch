@@ -30,6 +30,9 @@ server_scripts {
     'server/store.lua',
     'server/recipients.lua',
     'server/api.lua',
+    -- ingress.lua builds the rate-limited, registered player-alert boundary on
+    -- top of api.lua and must exist before compat.lua wires legacy events.
+    'server/ingress.lua',
     'server/units.lua',
     'server/callbacks.lua',
     'server/compat.lua',

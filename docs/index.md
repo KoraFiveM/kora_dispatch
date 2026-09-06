@@ -38,9 +38,44 @@ caller bug worth reporting, not something to paper over.
 Everything that creates or mutates a call is server-side: a call must be
 authoritative, and the recipient roster only exists on the server.
 
+### `exports.qbdispatch:registerPlayerAlert(key, definition)`
+
+Registers a fixed alert type owned by the calling resource. `definition` uses
+the same targeting and presentation fields as `createCall`, plus an optional
+`cooldown` (default `Config.ingress.defaultCooldown`). The non-zero cooldown is
+server-enforced. Set `requiredJobType` when only an on-duty member of one service
+may raise the alert. Registrations are cleaned up automatically when their
+owning resource stops.
+
+### `exports.qbdispatch:createPlayerCall(src, key)`
+
+Raises a registered alert for `src`. The key must be owned by the calling
+resource. The reporter supplies no wording, priority, service, coordinates, or
+metadata: dispatch reuses the registered definition and reads the networked ped
+position server-side. Per-player/per-type cooldowns and
+`Config.ingress.maxLiveCalls` are enforced centrally.
+
+Use this pair when a public client event observes an incident. Use `createCall`
+only when the incident and its payload were established by trusted server code.
+
+```lua
+exports.qbdispatch:registerPlayerAlert('myresource:alarm', {
+    jobTypes = { 'leo' }, title = 'Alarm', message = 'An alarm was activated.',
+    priority = 2, cooldown = 30000,
+})
+
+RegisterNetEvent('myresource:server:alarm', function()
+    exports.qbdispatch:createPlayerCall(source, 'myresource:alarm')
+end)
+```
+
 ### `exports.qbdispatch:createCall(payload)`
 
 Raises a call. Returns `callId, recipientCount`, or `false, error`.
+
+This unrestricted export is limited to the server resources listed in
+`Config.trustedCallers`. Add a resource there only when it intentionally owns
+server-authoritative dispatch creation.
 
 The recipient count is how a caller tells "help is coming" from "nobody is on
 duty" — worth surfacing to whoever raised it.

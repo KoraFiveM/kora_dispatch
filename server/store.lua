@@ -288,6 +288,21 @@ function Dispatch.store.countAttached(src, exceptId)
     return count
 end
 
+---Counts every currently live call, across services. Player-originated ingress
+---uses this for its global amplification ceiling; trusted server calls are not
+---evicted or refused by the store itself.
+---@return integer count
+function Dispatch.store.countLive()
+    local now = GetGameTimer()
+    local count = 0
+
+    for _, call in pairs(byId) do
+        if Dispatch.calls.isLive(call, now) then count = count + 1 end
+    end
+
+    return count
+end
+
 ---Detaches a source from every call it is attached to. Used on drop and on
 ---going off duty -- a unit that has left cannot still be en route.
 ---@param src integer

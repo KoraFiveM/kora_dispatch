@@ -8,10 +8,12 @@ dofile('shared/calls.lua')
 dofile('server/store.lua')
 dofile('server/recipients.lua')
 dofile('server/api.lua')
+dofile('server/ingress.lua')
 
 local EXPECTED = {
     'createCall', 'updateCall', 'closeCall',
     'getCall', 'getCalls', 'setUnitState', 'getOnDutyUnits',
+    'registerPlayerAlert', 'createPlayerCall',
 }
 
 h.test('every documented server export is registered', function()
