@@ -1,157 +1,124 @@
--- The NUI bridge.
---
--- IMPORTANT: every NUI native below is called RAW rather than through QB.nui.*.
--- This resource owns its own frame (`ui_page` in fxmanifest.lua), and each
--- `QB.<module>.<fn>` access is a cross-resource export call whose body runs in
--- QBLIB's Lua VM -- SendNUIMessage would post into qblib's frame, and
--- RegisterNUICallback would publish the callback at https://qblib/<name> while
--- this resource's page fetches https://qbdispatch/<name>: a permanent 404. The
--- same rationale is documented at the head of qbhud/client/hud.lua.
---
--- QB.cache / QB.timers / QB.blips / QB.keybind stay on the proxy; qbtheme is
--- imported directly --
--- they are pure Lua and touch no NUI native.
+-- Dispatch uses qblib's shared AppShell for its tablet. The dispatch resource
+-- remains responsible for call state, response rules, routes and unit data;
+-- qblib provides the common application frame, navigation and focus handling.
 
 Dispatch = Dispatch or {}
 Dispatch.ui = {}
 
-local ready = false
-local pending = {}
-
--- Whether THIS resource currently holds NUI focus.
---
--- SetNuiFocus is global, not per-resource: calling SetNuiFocus(false, false)
--- releases whoever actually has it. Releasing focus we never took steals the
--- mouse from another resource's open UI -- which is exactly what happened when
--- the tablet's close path released unconditionally: hydrate() calls
--- setTablet(false) on player load and on every job/duty change, and on login
--- that lands while qbmultichar owns focus for character selection. The player
--- then cannot click a character, never logs in, and every logged-in-gated UI on
--- the server (the HUD included) stays hidden.
---
--- So: only ever release focus this resource took.
-local hasFocus = false
-
----@param focused boolean
-local function setFocus(focused)
-    if focused == hasFocus then return end
-    hasFocus = focused
-    SetNuiFocus(focused, focused)
+local function callTitle(call)
+    return (call.code and (call.code .. ' · ') or '') .. (call.title or 'Dispatch call')
 end
 
----@param action string
----@param data any
-function Dispatch.ui.send(action, data)
-    -- SendNUIMessage is postMessage-like, not a mailbox: anything sent before
-    -- the page mounts is lost permanently. Messages are queued until the app
-    -- reports in, which matters most on resource restart -- the hydrate reply
-    -- routinely beats the browser to it.
-    if not ready then
-        pending[#pending + 1] = { action = action, data = data }
-        return
+local function callDescription(call)
+    return table.concat({ call.message or 'No details supplied.', call.location or 'Location unavailable' }, '\n')
+end
+
+local function callItems(calls, selected)
+    local out = {}
+    for _, call in ipairs(calls) do
+        out[#out + 1] = {
+            id = tostring(call.id), label = callTitle(call), description = callDescription(call),
+            icon = call.id == selected and 'radio' or 'map-pin', badge = call.priority,
+            tone = call.id == selected and 'primary' or 'neutral', action = 'dispatch:select',
+        }
     end
-    SendNUIMessage({ action = action, data = data })
+    return out
 end
 
----Pushes the whole current view. Cheap enough to send wholesale (a few dozen
----calls at most) and far easier to reason about than diffing.
-function Dispatch.ui.render()
+local function selectedContent(S)
+    local call = Dispatch.state.selected()
+    if not call then
+        return { title = 'Call details', blocks = { { type = 'empty', title = 'No call selected', description = 'Choose a call from the queue to see its details.', icon = 'radio' } } }
+    end
+    local mine = Dispatch.state.myStateOn(call)
+    local nextState = mine == 'en_route' and 'on_scene' or mine == 'on_scene' and 'clear' or 'en_route'
+    local nextLabel = mine == 'en_route' and 'Mark on scene' or mine == 'on_scene' and 'Clear call' or 'Accept call'
+    return {
+        title = callTitle(call), description = callDescription(call),
+        actions = {
+            { id = 'dispatch:respond:' .. nextState, label = nextLabel, icon = 'radio', variant = 'primary' },
+            { id = 'dispatch:route', label = 'Set route', icon = 'navigation', variant = 'secondary' },
+        },
+        blocks = { { type = 'stats', items = {
+            { label = 'Priority', value = call.priority or '—', icon = 'alert-triangle', tone = 'warning' },
+            { label = 'Units assigned', value = #(call.units or {}), icon = 'users' },
+            { label = 'Your response', value = mine and mine:gsub('_', ' ') or 'Not assigned', icon = 'radio', tone = mine and 'primary' or 'neutral' },
+        } }, { type = 'text', title = 'Call information', text = callDescription(call) } },
+    }
+end
+
+local function appDefinition()
     local S = Dispatch.state.data
-
-    Dispatch.ui.send('qbdispatch:state', {
-        active = S.service ~= nil,
-        service = S.service,
-        config = S.config,
-        hidden = S.hidden,
-        tabletOpen = S.tabletOpen,
-        selected = S.selected,
-        me = S.unit,
-        calls = Dispatch.state.all(),
-        units = S.units,
-        keybinds = Config.keybinds,
-        -- The SERVER's clock, not this client's. Call timestamps are stamped
-        -- server-side and the two GetGameTimer()s are unrelated -- the NUI's
-        -- countdowns and marker fade are only meaningful against the clock the
-        -- timestamps came from.
-        now = Dispatch.state.now(),
-    })
+    local active = Dispatch.state.live()
+    return {
+        id = 'qbdispatch:tablet', title = (S.config and S.config.label) or 'Dispatch',
+        description = S.unit and ((S.unit.callsign and S.unit.callsign .. ' · ' or '') .. (S.unit.name or ('Unit ' .. S.unit.src))) or 'Dispatch tablet',
+        icon = 'radio', width = 1220, height = 800,
+        navigation = {
+            { id = 'queue', label = 'Active calls', icon = 'radio', badge = #active,
+                content = { title = 'Active calls', description = 'Select a call to inspect it, respond or set a route.',
+                    blocks = { { type = 'list', items = callItems(active, S.selected), empty = 'No active calls. Everything is clear.' } } } },
+            { id = 'history', label = 'History', icon = 'history', badge = #S.order,
+                content = { title = 'Call history', blocks = { { type = 'list', items = callItems(Dispatch.state.all(), S.selected), empty = 'No calls in this shift.' } } } },
+            { id = 'detail', label = 'Selected call', icon = 'map-pin', content = selectedContent(S) },
+            { id = 'units', label = 'Units', icon = 'users', badge = #S.units,
+                content = { title = 'On-duty units', blocks = { { type = 'list', items = (function()
+                    local units = {}
+                    for _, unit in ipairs(S.units) do units[#units + 1] = {
+                        id = tostring(unit.src), label = (unit.callsign and unit.callsign .. ' · ' or '') .. (unit.name or ('Unit ' .. unit.src)),
+                        description = unit.gradeLabel or 'On duty', icon = 'users', tone = unit.src == (S.unit and S.unit.src) and 'primary' or 'neutral',
+                    } end
+                    return units
+                end)(), empty = 'No unit updates yet.' } } } },
+        },
+        footer = 'Routes and call responses are verified by dispatch.',
+        onAction = function(actionId, context)
+            if actionId == 'dispatch:select' then
+                local id = tonumber(context and context.itemId)
+                Dispatch.state.select(id)
+                return { update = { navigation = appDefinition().navigation } }
+            end
+            local call = Dispatch.state.selected()
+            if not call then error('Select a call first.') end
+            if actionId == 'dispatch:route' then
+                Dispatch.blip.route(call)
+                return {}
+            end
+            local response = actionId:match('^dispatch:respond:(.+)$')
+            if not response then error('Unknown dispatch action.') end
+            local state, err = QB.callback.trigger('qbdispatch:respond', call.id, response)
+            if state == false then error(err or 'Could not update the call.') end
+            return { update = { navigation = appDefinition().navigation } }
+        end,
+    }
 end
 
----Opens or closes the tablet, taking and releasing NUI focus with it.
+function Dispatch.ui.render()
+    if Dispatch.state.data.tabletOpen then QB.nui.registerApp(appDefinition()) end
+end
+
+local function setViewing(open)
+    CreateThread(function() QB.callback.trigger('qbdispatch:setViewing', open) end)
+end
+
 ---@param open boolean
 function Dispatch.ui.setTablet(open)
-    -- Closing always releases OUR focus, even when this resource already
-    -- believes the tablet is shut -- going off duty clears the local state
-    -- first, so an early return would leave a player who was mid-tablet with
-    -- their mouse locked to a frame that no longer renders anything. setFocus
-    -- is a no-op when we never held it, so this cannot disturb another
-    -- resource's UI.
     if not open then
-        setFocus(false)
         if not Dispatch.state.data.tabletOpen then return end
-    elseif open == Dispatch.state.data.tabletOpen then
-        return
-    elseif not Dispatch.state.isActive() then
+        Dispatch.state.setTabletOpen(false)
+        QB.nui.closeApp('qbdispatch:tablet')
+        setViewing(false)
         return
     end
-
-    Dispatch.state.setTabletOpen(open)
-    setFocus(open)
-    Dispatch.ui.render()
-
-    -- The server only runs the unit heartbeat while somebody is looking, so the
-    -- open/close signal is what gates that work entirely. It answers by running
-    -- a real broadcast, which arrives as an ordinary qbdispatch:client:units
-    -- push -- so there is nothing to unpack from the reply here.
+    if Dispatch.state.data.tabletOpen or not Dispatch.state.isActive() then return end
+    Dispatch.state.setTabletOpen(true)
+    QB.nui.registerApp(appDefinition())
+    setViewing(true)
     CreateThread(function()
-        QB.callback.trigger('qbdispatch:setViewing', open)
+        QB.nui.openApp('qbdispatch:tablet')
+        if Dispatch.state.data.tabletOpen then
+            Dispatch.state.setTabletOpen(false)
+            setViewing(false)
+        end
     end)
 end
-
--- Answered first and unconditionally, so a failure inside the initial render
--- can't leave the browser's fetch hanging forever.
-RegisterNUICallback('qbdispatch:ready', function(_, cb)
-    cb({})
-    ready = true
-
-    for _, message in ipairs(pending) do
-        SendNUIMessage({ action = message.action, data = message.data })
-    end
-    pending = {}
-
-    Dispatch.ui.render()
-end)
-
-RegisterNUICallback('qbdispatch:close', function(_, cb)
-    cb({})
-    Dispatch.ui.setTablet(false)
-end)
-
-RegisterNUICallback('qbdispatch:select', function(data, cb)
-    cb({})
-    Dispatch.state.select(data and data.id)
-    Dispatch.ui.render()
-end)
-
-RegisterNUICallback('qbdispatch:respond', function(data, cb)
-    if not data or not data.id then return cb({ ok = false }) end
-
-    CreateThread(function()
-        local state, err = QB.callback.trigger('qbdispatch:respond', data.id, data.state)
-        cb({ ok = state ~= false, state = state or nil, error = err })
-    end)
-end)
-
-RegisterNUICallback('qbdispatch:setWaypoint', function(data, cb)
-    cb({})
-    local call = data and data.id and Dispatch.state.get(data.id)
-    if call then Dispatch.blip.route(call) end
-end)
-
-AddEventHandler('onResourceStop', function(resource)
-    if resource ~= GetCurrentResourceName() then return end
-    -- Leaving NUI focus set would lock the player's mouse into a frame that no
-    -- longer exists, with no way out but a reconnect. Gated the same way: if we
-    -- did not take focus, someone else holds it and it is not ours to drop.
-    setFocus(false)
-end)

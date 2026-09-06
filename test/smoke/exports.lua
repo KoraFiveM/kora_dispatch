@@ -134,32 +134,13 @@ h.test('map tiles opt out of Preflight image clamping', function()
         'max-w-none must be present in the built CSS')
 end)
 
-h.test('the manifest globs assets with the trailing /* FiveM actually needs', function()
+h.test('the AppShell dispatch manifest does not own a second browser frame', function()
     local file = assert(io.open('fxmanifest.lua', 'r'))
     local manifest = file:read('*a')
     file:close()
 
-    -- A bare trailing '**' matches nothing in FiveM's globber, so the bundle
-    -- 404s and React never mounts -- with no error anywhere.
-    h.assertTrue(manifest:find("'web/build/assets/%*%*/%*'") ~= nil,
-        "assets must be globbed as 'web/build/assets/**/*'")
-    -- The tile tree is nested ({z}/{x}/{y}.jpg), so it needs the RECURSIVE
-    -- '**/*' form -- the one CFX's own resources use for nested trees
-    -- ('nui/**/*', 'panel/**/*', 'web/public/**/*').
-    --
-    -- A multi-level 'atlas/*/*/*.jpg' matches under a shell but NOT under
-    -- FiveM's globber, and was shipped here once: every tile came back a broken
-    -- image with nothing in any log. Asserting the literal pattern is the only
-    -- honest check available offline -- counting shell matches (which the
-    -- previous version of this test did) proves nothing about FiveM and gave
-    -- false confidence.
-    h.assertTrue(manifest:find("'web/build/map/%*%*/%*'") ~= nil,
-        "map tiles need the recursive '**/*' glob; a multi-level '*/*/*' matches nothing in FiveM")
-
-    local tiles = assert(io.popen("find web/build/map -name '*.jpg' | wc -l"))
-    local total = tonumber(tiles:read('*a'))
-    tiles:close()
-    h.assertTrue(total > 0, 'sanity: basemap tiles are vendored')
+    h.assertTrue(manifest:find('ui_page', 1, true) == nil,
+        'dispatch must use qblib AppShell instead of owning a second NUI frame')
 end)
 
 h.report('exports')
