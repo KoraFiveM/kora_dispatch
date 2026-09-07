@@ -236,3 +236,6 @@ Config.compat = {
 -- registered only while this is on, and are admin-gated even then. Turn it on to
 -- exercise dispatch without needing a second player or an actual crime.
 Config.debug = true
+
+-- Registers this resource-owned configuration with qblib without changing its public Config table.
+if QB and QB.config and QB.config.adopt then Config = QB.config.adopt(Config) end
