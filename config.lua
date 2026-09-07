@@ -113,6 +113,7 @@ Config.trustedCallers = {
     qbpolice = true,
     qbambulance = true,
     qbbusinesses = true,
+    qbrobberies = true,
 }
 
 -- --- feed -------------------------------------------------------------------

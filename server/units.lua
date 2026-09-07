@@ -137,7 +137,7 @@ function Dispatch.units.tick()
     local watchersByService = {}
     for src, service in pairs(viewers) do
         watchersByService[service] = watchersByService[service] or {}
-        table.insert(watchersByService[service], src)
+        watchersByService[service][#watchersByService[service] + 1] = src
     end
 
     for service, watchers in pairs(watchersByService) do
