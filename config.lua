@@ -143,10 +143,17 @@ Config.keybinds = {
 
 -- --- map --------------------------------------------------------------------
 --
--- Calls are NEVER drawn as game blips: the blip pool is small and a busy shift
--- would exhaust it. The tablet renders its own map instead, and exactly one real
--- blip exists at a time -- the route to the call you personally accepted.
+-- A small, bounded set of ordinary map blips lets officers see live calls
+-- without opening the tablet. These markers never set a GPS route; accepting a
+-- call still creates the one route blip managed by client/blip.lua.
 Config.map = {
+    -- Keep the native map readable and avoid consuming GTA's finite blip pool
+    -- during a busy shift. The highest-priority live calls win a slot.
+    showCallBlips = true,
+    maxCallBlips = 4,
+    callBlipSprite = 161,
+    callBlipScale = 0.85,
+
     -- Tile pyramid vendored under web/build/map/. 256px tiles,
     -- {z}/{x}/{y}.png, zoom 1..3 (2048x3072 at the deepest level).
     --
@@ -191,6 +198,14 @@ Config.map = {
     -- out over the remainder. Fading from the very first second reads as "the UI
     -- is broken" rather than "this call is going stale".
     fadeHoldFraction = 0.6,
+}
+
+-- --- immediate call alert ---------------------------------------------------
+-- The tablet is optional, so a new call also produces a toast while it is
+-- closed. Existing calls restored during login/on-duty hydration stay quiet.
+Config.alerts = {
+    notify = true,
+    duration = 7000,
 }
 
 -- --- legacy compat ----------------------------------------------------------

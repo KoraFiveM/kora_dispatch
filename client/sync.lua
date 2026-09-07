@@ -22,6 +22,7 @@ local function hydrate()
         Dispatch.ui.setTablet(false)
         Dispatch.state.setService(nil)
         Dispatch.blip.clear()
+        Dispatch.blip.clearCalls()
         Dispatch.ui.render()
         hydrating = false
         return
@@ -30,6 +31,7 @@ local function hydrate()
     Dispatch.state.syncClock(data.now)
     Dispatch.state.setService(data.service, data.unit, data.config)
     Dispatch.state.replaceAll(data.calls)
+    Dispatch.blip.refreshCalls()
     Dispatch.theme.refresh()
     Dispatch.ui.render()
     hydrating = false
@@ -42,9 +44,24 @@ RegisterNetEvent('qbdispatch:client:call', function(call, serverNow)
     Dispatch.state.syncClock(serverNow)
 
     local isNew = Dispatch.state.upsert(call)
+    Dispatch.blip.refreshCalls()
     Dispatch.ui.render()
 
-    if not isNew or Dispatch.state.data.hidden then return end
+    if not isNew then return end
+
+    if Config.alerts and Config.alerts.notify then
+        QB.notify.send({
+            title = call.code and ('Dispatch ' .. call.code) or 'New dispatch call',
+            message = call.title or call.message or 'A new call is waiting.',
+            type = call.priority == 1 and 'error' or (call.priority == 2 and 'warning' or 'info'),
+            duration = Config.alerts.duration,
+            icon = call.icon or 'radio',
+        })
+    end
+
+    -- Hiding the feed is a presentation preference, not an acknowledgement:
+    -- the new-call toast and native map marker above still reach the officer.
+    if Dispatch.state.data.hidden then return end
 
     -- A call may carry its own tone; otherwise the service's; otherwise the
     -- fallback. Most specific first, so a silent alarm can sound different from
@@ -82,6 +99,7 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
     Dispatch.ui.setTablet(false)
     Dispatch.state.setService(nil)
     Dispatch.blip.clear()
+    Dispatch.blip.clearCalls()
     Dispatch.ui.render()
 end)
 

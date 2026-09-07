@@ -157,6 +157,12 @@ end
 function Dispatch.api.setUnitState(src, id, state)
     local call = Dispatch.store.get(id)
     if not call then return false, 'no such call' end
+    -- Detaching is cleanup and remains valid after closure/expiry. Every other
+    -- transition is a response to a live incident and must fail closed here,
+    -- regardless of what an older client happens to render.
+    if state ~= false and not Dispatch.calls.isLive(call, GetGameTimer()) then
+        return false, 'call is no longer active'
+    end
 
     local unit = Dispatch.recipients.unitOf(src)
     if not unit then return false, 'not on duty' end

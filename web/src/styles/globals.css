@@ -67,3 +67,22 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Keep the call list and map usable when three desktop columns no longer fit.
+   The selected-call pane becomes a compact row below the map instead of being
+   squeezed to unreadable widths or falling outside the tablet. */
+@media (max-width: 900px) {
+  .dispatch-tablet { height: calc(100vh - 16px) !important; width: calc(100vw - 16px) !important; }
+  .dispatch-layout { grid-template-columns: minmax(210px, 38%) minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) minmax(132px, 30%); }
+  .dispatch-feed { grid-row: 1 / span 2; }
+  .dispatch-map { min-height: 0; }
+  .dispatch-detail { grid-column: 2; border-top: 1px solid hsl(var(--border)); border-left: 0; }
+}
+
+@media (max-width: 580px) {
+  .dispatch-tablet { border-radius: 0.625rem; }
+  .dispatch-layout { grid-template-columns: minmax(154px, 43%) minmax(0, 1fr) !important; grid-template-rows: minmax(0, 1fr) 126px; }
+  .dispatch-tablet footer { gap: 0.5rem; padding-inline: 0.75rem; }
+  .dispatch-tablet footer span:nth-child(2) { display: none; }
+  .dispatch-detail > div { padding: 0.75rem; }
+}

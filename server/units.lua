@@ -80,33 +80,44 @@ local function snapshot(unit)
     }
 end
 
+---@param a table
+---@param b table
+---@return number
+local function distanceSquared(a, b)
+    local dx, dy, dz = a.x - b.x, a.y - b.y, (a.z or 0.0) - (b.z or 0.0)
+    return dx * dx + dy * dy + dz * dz
+end
+
 ---Builds and sends one service's unit list to its viewers.
 ---@param service string
 ---@param watchers integer[]
 local function broadcast(service, watchers)
     local units = {}
+    local positions = {}
     for _, unit in ipairs(exports.qbcore:getOnDutyRoster({ jobType = service })) do
         local snap = snapshot(unit)
-        if snap then units[#units + 1] = snap end
+        if snap then
+            units[#units + 1] = snap
+            positions[snap.src] = snap.coords
+        end
     end
 
-    -- The viewer is INCLUDED in their own list. They are a unit like any other,
-    -- the map needs to draw them (and marks them as "you"), and the call detail
-    -- computes distance and bearing from their position -- none of which works
-    -- if the one unit the UI can't do without is the one filtered out.
+    local maxDistance = tonumber(Config.units.maxDistance) or 0
+    local rangeSquared = maxDistance > 0 and maxDistance * maxDistance or nil
+
     -- The viewer is INCLUDED in their own list. They are a unit like any other,
     -- the map needs to draw them (and marks them "you"), and the call detail
     -- computes distance and bearing from their position -- none of which works
     -- if the one unit the UI can't do without is the one filtered out. That also
     -- means a viewer is never range-filtered out of their own list.
     for _, src in ipairs(watchers) do
-        if not rangeSq or not positionOf[src] then
+        if not rangeSquared or not positions[src] then
             TriggerClientEvent('qbdispatch:client:units', src, units)
         else
-            local origin = positionOf[src]
+            local origin = positions[src]
             local visible = {}
             for _, unit in ipairs(units) do
-                if unit.src == src or distanceSq(origin, unit.coords) <= rangeSq then
+                if unit.src == src or distanceSquared(origin, unit.coords) <= rangeSquared then
                     visible[#visible + 1] = unit
                 end
             end

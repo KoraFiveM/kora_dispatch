@@ -257,6 +257,28 @@ h.test('a closed call cannot be updated or closed again', function()
     h.assertEqual(err, 'call is closed', 'and says so')
 end)
 
+h.test('closed and expired history calls cannot accept new responses', function()
+    releaseAll()
+    local closed = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'Closed incident' })
+    Dispatch.api.closeCall(closed)
+    local closedState, closedErr = Dispatch.api.setUnitState(1, closed)
+    h.assertFalse(closedState, 'a closed history entry cannot attach a unit')
+    h.assertEqual(closedErr, 'call is no longer active', 'closed responses explain that the incident ended')
+    local directState, directErr = Dispatch.store.setUnitState(closed, 1, 'en_route', { name = 'Jane Doe' })
+    h.assertFalse(directState, 'the store also refuses a non-live attachment')
+    h.assertEqual(directErr, 'call is no longer active', 'low-level writes enforce the same invariant')
+
+    local expired = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'Expired incident', duration = 1 })
+    net.advance(2)
+    local expiredState, expiredErr = Dispatch.api.setUnitState(1, expired)
+    h.assertFalse(expiredState, 'an expired history entry cannot attach a unit')
+    h.assertEqual(expiredErr, 'call is no longer active', 'expired responses explain that the incident ended')
+
+    -- Cleanup remains available so duty changes and retention never strand an
+    -- old unit record solely because the incident ended.
+    h.assertFalse(Dispatch.api.setUnitState(1, closed, false), 'detaching from a closed call remains valid cleanup')
+end)
+
 h.test('a sibling job in the same service cannot attach to a narrower call', function()
     releaseAll()
     -- A call raised against jobs={'police'} never reached the sheriff's

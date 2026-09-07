@@ -77,11 +77,11 @@ export function Tablet() {
 
     return (
         <div className="pointer-events-auto fixed inset-0 z-overlay flex items-center justify-center bg-black/[.68] p-4">
-            <div className="panel flex h-[min(680px,calc(100vh-2rem))] w-[min(1100px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl shadow-modal">
+            <div className="dispatch-tablet panel flex h-[min(680px,calc(100vh-2rem))] w-[min(1100px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl shadow-modal">
                 <Header onClose={() => fetchNui("qbdispatch:close")} />
 
-                <div className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)_300px]">
-                    <aside className="flex min-h-0 flex-col border-r border-border">
+                <div className="dispatch-layout grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)_300px]">
+                    <aside className="dispatch-feed flex min-h-0 flex-col border-r border-border">
                         <div className="flex items-center gap-2 border-b border-border px-3 py-2">
                             <Search size={14} className="shrink-0 text-muted-foreground" aria-hidden />
                             <input
@@ -143,7 +143,7 @@ export function Tablet() {
                         />
                     </aside>
 
-                    <div className="min-h-0">
+                    <div className="dispatch-map min-h-0">
                         {config?.map ? (
                             <MapView
                                 map={config.map}
@@ -296,7 +296,7 @@ function Detail({ call }: { call?: DispatchCall }) {
         mine?.state === "en_route" ? "On scene" : mine?.state === "on_scene" ? "Clear" : "Accept"
 
     return (
-        <aside className="scroll-thin min-h-0 overflow-y-auto border-l border-border">
+        <aside className="dispatch-detail scroll-thin min-h-0 overflow-y-auto border-l border-border">
             <div className="space-y-4 p-4">
                 <div className="flex items-start gap-2">
                     <span

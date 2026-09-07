@@ -46,8 +46,9 @@ function M.install()
     function _G.Wait(_) end
     function _G.GetInvokingResource() return invokingResource end
     function _G.GetCurrentResourceName() return 'qbdispatch' end
+    local positionOfPed = {}
     function _G.GetPlayerPed(src) return 1000 + src end
-    function _G.GetEntityCoords(_) return { x = 100.0, y = 200.0, z = 30.0 } end
+    function _G.GetEntityCoords(entity) return positionOfPed[entity] or { x = 100.0, y = 200.0, z = 30.0 } end
     function _G.GetEntityHeading(_) return 90.0 end
     function _G.GetEntitySpeed(_) return 10.0 end
     function _G.DoesEntityExist(entity) return entity ~= nil and entity ~= 0 end
@@ -190,6 +191,11 @@ function M.install()
         setVehicle = function(src, vehicle, vehicleType)
             vehicleOf[1000 + src] = vehicle
             _G.__vehicleType = vehicleType
+        end,
+
+        ---Overrides one player's server-side ped position.
+        setCoords = function(src, coords)
+            positionOfPed[1000 + src] = coords
         end,
 
         ---Puts a player on/off duty in a job.

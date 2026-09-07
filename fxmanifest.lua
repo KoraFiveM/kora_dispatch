@@ -22,6 +22,12 @@ shared_scripts {
     'shared/calls.lua',
 }
 
+-- AppShell renders the map, but the dispatch-specific basemap remains owned
+-- and served by this resource.
+files {
+    'web/build/map/**/*',
+}
+
 -- Explicit, never globbed -- alphabetic glob order would not respect the real
 -- load-order dependencies here. store.lua defines the call registry every other
 -- server file mutates and must load first; compat.lua registers the legacy

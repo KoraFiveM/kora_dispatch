@@ -105,20 +105,22 @@ h.test('closing the tablet stops the work for that viewer', function()
 end)
 
 h.test('maxDistance limits a viewer to nearby colleagues but never hides them from themselves', function()
-    -- Every mocked ped is at the same position, so a zero-metre radius keeps
-    -- only the viewer -- which is the assertion that matters: the one unit the
-    -- UI cannot do without must survive any filter.
-    Config.units.maxDistance = 0.0001
+    net.setCoords(1, { x = 100.0, y = 200.0, z = 30.0 })
+    net.setCoords(2, { x = 500.0, y = 200.0, z = 30.0 })
+    Config.units.maxDistance = 100
     net.clearEvents()
     Dispatch.units.setViewer(1, 'leo')
     Dispatch.units.tick()
 
     local units = unitPushes()[1].args[1]
+    h.assertEqual(#units, 1, 'a colleague outside the configured radius is filtered out')
     local sawSelf = false
     for _, unit in ipairs(units) do if unit.src == 1 then sawSelf = true end end
     h.assertTrue(sawSelf, 'the viewer is never filtered out of their own list')
 
     Config.units.maxDistance = 0
+    net.setCoords(1, nil)
+    net.setCoords(2, nil)
     Dispatch.units.setViewer(1, nil)
 end)
 

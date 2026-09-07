@@ -239,6 +239,7 @@ function Dispatch.store.setUnitState(id, src, state, unit)
         return call
     end
 
+    if not Dispatch.calls.isLive(call, GetGameTimer()) then return nil, 'call is no longer active' end
     if not Dispatch.calls.isValidState(state) then return nil, 'invalid unit state' end
 
     -- Keyed by STRING source. This table is json-encoded on its way to the NUI,
