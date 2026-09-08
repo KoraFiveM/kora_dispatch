@@ -5,6 +5,7 @@ local mocks = dofile('test/mocks.lua'); local net = mocks.install()
 dofile('config.lua')
 
 local created, removed = {}, {}
+local infoUpdates = {}
 local nextBlip = 100
 QB.blips = {
     create = function(coords, options)
@@ -14,6 +15,10 @@ QB.blips = {
     end,
     remove = function(blip)
         removed[#removed + 1] = blip
+        return true
+    end,
+    setInfo = function(blip, info)
+        infoUpdates[#infoUpdates + 1] = { blip = blip, info = info }
         return true
     end,
 }
@@ -43,6 +48,8 @@ h.test('map markers show the most urgent calls and do not set a route', function
     h.assertEqual(created[2].coords.x, 3, 'then high-priority calls')
     h.assertEqual(created[1].options.route, nil, 'a map marker must not route the officer automatically')
     h.assertEqual(created[1].options.shortRange, false, 'the marker is visible on the full map')
+    h.assertEqual(created[1].options.info.rows[1].value, 'Critical', 'the panel describes call priority')
+    h.assertEqual(created[1].options.info.rows[3].value, 'No details supplied.', 'the panel handles a missing call message')
 end)
 
 h.test('closed and expired calls lose their native map markers', function()
@@ -55,6 +62,7 @@ h.test('closed and expired calls lose their native map markers', function()
     net.advance(60001)
     net.intervals[1].fn()
     h.assertEqual(#removed, 3, 'the expiry sweep removes every remaining marker')
+    h.assertEqual(#infoUpdates, 1, 'a surviving marker refreshes its pause-map details')
 end)
 
 h.report('call_blips')

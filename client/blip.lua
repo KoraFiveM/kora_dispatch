@@ -26,6 +26,18 @@ local function alertLabel(call)
     )
 end
 
+local function callInfo(call)
+    local priority = Config.priorities[call.priority] or Config.priorities[Config.defaultPriority]
+    return {
+        title = alertLabel(call),
+        rows = {
+            { kind = 'name', label = 'Priority', value = priority.label },
+            { kind = 'name', label = 'Location', value = call.location or 'Location unavailable' },
+            { kind = 'wrappedText', value = call.message or 'No details supplied.' },
+        },
+    }
+end
+
 local function removeCallBlip(id)
     local blip = callBlips[id]
     if blip then QB.blips.remove(blip) end
@@ -71,8 +83,11 @@ function Dispatch.blip.refreshCalls()
                 label = alertLabel(call),
                 shortRange = false,
                 category = 'Dispatch calls',
+                info = callInfo(call),
             })
             if blip then callBlips[id] = blip end
+        else
+            QB.blips.setInfo(callBlips[id], callInfo(call))
         end
     end
 end
@@ -107,6 +122,7 @@ function Dispatch.blip.route(call)
         shortRange = false,
         label = ('%s%s'):format(call.code and (call.code .. ' - ') or '', call.title or 'Dispatch'),
         route = true,
+        info = callInfo(call),
     })
 
     if not blip then return false end
