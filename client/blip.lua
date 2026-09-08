@@ -19,11 +19,16 @@ local function alertColor(call)
     return 5
 end
 
-local function alertLabel(call)
-    return ('Dispatch%s%s'):format(
-        call.code and (' ' .. call.code) or '',
-        call.title and (' - ' .. call.title) or ''
+local function alertName(call)
+    return ('%s%s'):format(
+        call.code or '',
+        call.title and ((call.code and ' - ' or '') .. call.title) or ''
     )
+end
+
+local function alertLabel(call)
+    local name = alertName(call)
+    return name ~= '' and ('Dispatch: %s'):format(name) or 'Dispatch'
 end
 
 local function callInfo(call)
@@ -76,13 +81,14 @@ function Dispatch.blip.refreshCalls()
     for _, id in ipairs(desiredIds) do
         local call = desired[id]
         if not callBlips[id] then
+            local name = alertName(call)
             local blip = QB.blips.create(call.coords, {
                 sprite = map.callBlipSprite or 161,
                 color = alertColor(call),
                 scale = map.callBlipScale or 0.85,
-                label = alertLabel(call),
+                name = name ~= '' and name or nil,
                 shortRange = false,
-                category = 'Dispatch calls',
+                category = 'Dispatch',
                 info = callInfo(call),
             })
             if blip then callBlips[id] = blip end
@@ -120,7 +126,8 @@ function Dispatch.blip.route(call)
         color = call.priority == 1 and 1 or (call.priority == 2 and 47 or 4),
         scale = 0.9,
         shortRange = false,
-        label = ('%s%s'):format(call.code and (call.code .. ' - ') or '', call.title or 'Dispatch'),
+        category = 'Dispatch',
+        name = ('%s%s'):format(call.code and (call.code .. ' - ') or '', call.title or 'Dispatch'),
         route = true,
         info = callInfo(call),
     })

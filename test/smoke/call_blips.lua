@@ -48,8 +48,21 @@ h.test('map markers show the most urgent calls and do not set a route', function
     h.assertEqual(created[2].coords.x, 3, 'then high-priority calls')
     h.assertEqual(created[1].options.route, nil, 'a map marker must not route the officer automatically')
     h.assertEqual(created[1].options.shortRange, false, 'the marker is visible on the full map')
+    h.assertEqual(created[1].options.category, 'Dispatch', 'call markers use the canonical Dispatch category')
+    h.assertEqual(created[1].options.name, '10-2 - Call 2', 'the alert identity is supplied without a preformatted category')
+    h.assertEqual(created[1].options.label, nil, 'qblib composes the display label')
     h.assertEqual(created[1].options.info.rows[1].value, 'Critical', 'the panel describes call priority')
     h.assertEqual(created[1].options.info.rows[3].value, 'No details supplied.', 'the panel handles a missing call message')
+end)
+
+h.test('an accepted-call route uses the same canonical category and name contract', function()
+    local routed = call(4, 1)
+    h.assertTrue(Dispatch.blip.route(routed), 'a valid call creates a route')
+    local options = created[#created].options
+    h.assertEqual(options.category, 'Dispatch')
+    h.assertEqual(options.name, '10-4 - Call 4')
+    h.assertEqual(options.label, nil)
+    h.assertEqual(options.route, true)
 end)
 
 h.test('closed and expired calls lose their native map markers', function()

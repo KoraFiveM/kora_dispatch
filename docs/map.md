@@ -7,10 +7,10 @@ shift dropping a blip per call would exhaust it and start silently breaking
 garages, shops and job markers everywhere else — a failure that shows up far from
 its cause and is miserable to diagnose.
 
-So calls are never blips. The tablet renders its own basemap, where the marker
-count costs the game engine nothing, and exactly one real blip exists at a time:
-the GPS route to the call **you** accepted, which is the one thing that genuinely
-benefits from the real map.
+The tablet therefore renders the complete queue on its own basemap, where the
+marker count costs the game engine nothing. The native map shows only the most
+urgent `Config.map.maxCallBlips` calls (four by default), grouped beneath
+qblib's `Dispatch` category, and the GPS route to the call **you** accepted.
 
 ## The tiles
 

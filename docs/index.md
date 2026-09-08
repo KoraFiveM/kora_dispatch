@@ -236,13 +236,11 @@ be clutter, absent entirely the controls would be undiscoverable.
 
 ## Blips and the map
 
-**Calls are never game blips.** GTA's blip pool is small and shared with every
-other resource on the server; a busy shift dropping a blip per call would exhaust
-it and start silently breaking garages, shops and job markers everywhere else.
-
-Exactly one real blip exists at a time: the route to the call **you** accepted.
-Everything else is drawn on the tablet's own map, where the marker count costs
-the game engine nothing.
+The complete call set lives on the tablet map, where marker count costs the game
+engine nothing. The native map receives only the most urgent
+`Config.map.maxCallBlips` live calls (four by default), grouped under qblib's
+canonical `Dispatch` category, plus the single GPS route to the call **you**
+accepted. The cap protects GTA's shared blip pool during a busy shift.
 
 See [map.md](map.md) for the basemap, the projection, and how to recalibrate for
 a different image.
