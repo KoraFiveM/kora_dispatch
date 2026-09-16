@@ -309,7 +309,7 @@ because a job resource usually owns those names already and qbcore re-fires
 `police:server:policeAlert` itself — enabling both would produce two calls per
 alert. Turn it on only on a server with no job resource handling them.
 
-The legacy signature is not stable across the ecosystem (real qb-policejob fires
+The legacy signature is not stable across the ecosystem (some police resources fire
 `(coords, text)`, qbcore's compat table fires `(message, coords)`), so both orders
 are sniffed rather than assumed.
 
