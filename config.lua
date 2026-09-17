@@ -238,4 +238,15 @@ Config.compat = {
 Config.debug = true
 
 -- Registers this resource-owned configuration with qblib without changing its public Config table.
-if QB and QB.config and QB.config.adopt then Config = QB.config.adopt(Config) end
+if QB and QB.config and QB.config.adopt then
+    Config.feed.position = QB.config.enum(Config.feed.position, {
+        label = 'Dispatch feed position',
+        description = 'Selects where live dispatch cards appear on the screen. Left centre avoids the standard minimap, HUD, notification, and inventory surfaces; use a top position only when no other overlay occupies that area.',
+        options = {
+            { value = 'left-center', label = 'Left centre' },
+            { value = 'top-left', label = 'Top left' },
+            { value = 'top-center', label = 'Top centre' },
+        },
+    })
+    Config = QB.config.adopt(Config)
+end
