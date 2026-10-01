@@ -8,7 +8,7 @@ dofile('shared/calls.lua')
 dofile('server/store.lua')
 dofile('server/recipients.lua')
 dofile('server/api.lua')
-dofile('server/units.lua')
+dofile(arg[1] or 'server/units.lua')
 
 net.setPlayer(1, 'police', true, { name = 'Jane Doe', callsign = '1-ADAM-12' })
 net.setPlayer(2, 'sheriff', true, { name = 'Sam Reed', callsign = 'S-01' })
@@ -122,6 +122,56 @@ h.test('maxDistance limits a viewer to nearby colleagues but never hides them fr
     net.setCoords(1, nil)
     net.setCoords(2, nil)
     Dispatch.units.setViewer(1, nil)
+end)
+
+local function resetViewers()
+    for src, job in ipairs({ 'police', 'sheriff', 'ambulance' }) do
+        Dispatch.units.setViewer(src, nil)
+        net.setPlayer(src, job, true)
+    end
+    net.clearEvents()
+end
+
+h.test('the heartbeat removes off-duty or missing viewers without relying on client close', function()
+    resetViewers()
+    Dispatch.units.setViewer(1, 'leo'); Dispatch.units.setViewer(2, 'leo'); Dispatch.units.setViewer(3, 'ems')
+    net.setPlayer(1, 'police', false); net.removePlayer(3)
+    Dispatch.units.tick()
+    h.assertEqual(#unitPushes(), 1, 'only the still-authorised viewer receives positions')
+    h.assertEqual(unitPushes()[1].target, 2, 'the on-duty colleague keeps their map')
+    h.assertEqual(Dispatch.units.viewerCount(), 1, 'stale subscriptions are removed')
+    net.setPlayer(1, 'police', true)
+    net.clearEvents(); Dispatch.units.tick()
+    h.assertEqual(#unitPushes(), 1, 'returning on duty does not revive a retired subscription')
+    Dispatch.units.setViewer(1, 'leo')
+    net.clearEvents(); Dispatch.units.tick()
+    h.assertEqual(#unitPushes(), 2, 'opening the map again restores normal delivery')
+end)
+
+h.test('a service change removes the old viewer and requires viewing their current service', function()
+    resetViewers()
+    Dispatch.units.setViewer(1, 'leo'); Dispatch.units.setViewer(2, 'leo')
+    net.setPlayer(1, 'ambulance', true)
+    Dispatch.units.tick()
+    h.assertEqual(#unitPushes(), 1, 'the former officer no longer receives LEO positions')
+    h.assertEqual(unitPushes()[1].target, 2, 'other officers remain subscribed')
+    h.assertEqual(Dispatch.units.viewerCount(), 1, 'the obsolete service subscription is removed')
+    Dispatch.units.setViewer(1, 'ems')
+    net.clearEvents(); Dispatch.units.tick()
+    local own
+    for _, push in ipairs(unitPushes()) do if push.target == 1 then own = push.args[1] end end
+    h.assertEqual(#own, 2, 'viewing the current service delivers its roster')
+    for _, unit in ipairs(own) do h.assertEqual(unit.job, 'ambulance', 'current service only') end
+end)
+
+h.test('an on-duty department change within the same service retains the service map', function()
+    resetViewers()
+    Dispatch.units.setViewer(1, 'leo')
+    net.setPlayer(1, 'sheriff', true)
+    Dispatch.units.tick()
+    h.assertEqual(#unitPushes(), 1, 'an authorised LEO viewer keeps receiving the shared map')
+    h.assertEqual(#unitPushes()[1].args[1], 2, 'both current LEO units remain visible')
+    h.assertEqual(Dispatch.units.viewerCount(), 1, 'same-service viewing stays registered')
 end)
 
 h.report('units')

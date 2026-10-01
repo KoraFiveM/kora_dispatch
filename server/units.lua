@@ -136,8 +136,13 @@ end
 function Dispatch.units.tick()
     local watchersByService = {}
     for src, service in pairs(viewers) do
-        watchersByService[service] = watchersByService[service] or {}
-        watchersByService[service][#watchersByService[service] + 1] = src
+        local job = exports.qbcore:getJob(src)
+        if not job or not job.onduty or (job.type or 'none') ~= service then
+            viewers[src] = nil
+        else
+            watchersByService[service] = watchersByService[service] or {}
+            watchersByService[service][#watchersByService[service] + 1] = src
+        end
     end
 
     for service, watchers in pairs(watchersByService) do
