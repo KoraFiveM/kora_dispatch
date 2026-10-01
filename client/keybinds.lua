@@ -55,6 +55,7 @@ QB.keybind.add({
             call = Dispatch.state.live(1)[1]
             if not call then return end
             Dispatch.state.select(call.id)
+            Dispatch.ui.render()
         end
 
         local wasAttached = Dispatch.state.myStateOn(call) ~= nil

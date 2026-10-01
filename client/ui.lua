@@ -172,7 +172,21 @@ local function appDefinition()
 end
 
 function Dispatch.ui.render()
-    if Dispatch.state.data.tabletOpen then QB.nui.registerApp(appDefinition()) end
+    local S = Dispatch.state.data
+    if not Dispatch.state.isActive() or S.tabletOpen then
+        QB.nui.setDispatchFeed(false)
+    else
+        QB.nui.setDispatchFeed({
+            now = Dispatch.state.now(), calls = Dispatch.state.all(),
+            selected = S.selected, hidden = S.hidden, me = S.unit,
+            config = {
+                feed = (S.config and S.config.feed) or Config.feed,
+                priorities = (S.config and S.config.priorities) or Config.priorities,
+            },
+            keybinds = Config.keybinds, theme = Dispatch.theme.tokens(),
+        })
+    end
+    if S.tabletOpen then QB.nui.registerApp(appDefinition()) end
 end
 
 local function setViewing(open)
@@ -186,17 +200,19 @@ function Dispatch.ui.setTablet(open)
         Dispatch.state.setTabletOpen(false)
         QB.nui.closeApp('qbdispatch:tablet')
         setViewing(false)
+        Dispatch.ui.render()
         return
     end
     if Dispatch.state.data.tabletOpen or not Dispatch.state.isActive() then return end
     Dispatch.state.setTabletOpen(true)
-    QB.nui.registerApp(appDefinition())
+    Dispatch.ui.render()
     setViewing(true)
     CreateThread(function()
         QB.nui.openApp('qbdispatch:tablet')
         if Dispatch.state.data.tabletOpen then
             Dispatch.state.setTabletOpen(false)
             setViewing(false)
+            Dispatch.ui.render()
         end
     end)
 end

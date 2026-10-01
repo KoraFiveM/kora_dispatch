@@ -10,6 +10,7 @@ Dispatch = Dispatch or {}
 Dispatch.theme = {}
 
 local current
+local currentTokens
 
 ---@param hex any
 ---@return boolean
@@ -40,13 +41,19 @@ function Dispatch.theme.set(hex)
         return false, 'failed to derive theme tokens'
     end
 
-    if Dispatch.state.data.tabletOpen then Dispatch.ui.render() end
+    currentTokens = { primary = tokens.primary, ['brand-soft'] = tokens['brand-soft'], ['brand-border'] = tokens['brand-border'] }
+    Dispatch.ui.render()
     return true
 end
 
 ---@return string|nil
 function Dispatch.theme.get()
     return current
+end
+
+---@return table|nil
+function Dispatch.theme.tokens()
+    return currentTokens
 end
 
 ---Re-applies whatever accent is in force. Called after hydrate, so a service

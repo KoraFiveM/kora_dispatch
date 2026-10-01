@@ -1,25 +1,29 @@
 -- Dispatch delegates browser focus to qblib's AppShell. These checks ensure it
 -- never reaches for the global NUI focus native itself and cleans up viewing.
 local h = dofile('test/harness.lua')
-local mocks = dofile('test/mocks.lua'); mocks.install()
-dofile('config.lua')
+local mocks = dofile('test/mocks.lua'); local mock = mocks.install()
+local resource = arg[1] or '.'
+dofile(resource .. '/config.lua')
 
-local focusCalls, opened, closed, definitions = {}, 0, 0, {}
+local focusCalls, opened, closed, definitions, feeds = {}, 0, 0, {}, {}
 function _G.SetNuiFocus(mouse, keyboard) focusCalls[#focusCalls + 1] = { mouse, keyboard } end
 _G.QB = {
     nui = {
         registerApp = function(definition) definitions[#definitions + 1] = definition end,
         openApp = function() opened = opened + 1 end,
         closeApp = function() closed = closed + 1 end,
+        setDispatchFeed = function(payload) feeds[#feeds + 1] = payload; return true end,
     },
-    theme = { tokens = function() return { primary = 'token' } end },
+    theme = { tokens = function(hex)
+        return { primary = hex, ['brand-soft'] = 'soft:' .. hex, ['brand-border'] = 'border:' .. hex, background = 'unscoped' }
+    end },
     callback = { trigger = function() return true end },
 }
 
-dofile('shared/calls.lua')
-dofile('client/state.lua')
-dofile('client/theme.lua')
-dofile('client/ui.lua')
+dofile(resource .. '/shared/calls.lua')
+dofile(resource .. '/client/state.lua')
+dofile(resource .. '/client/theme.lua')
+dofile(resource .. '/client/ui.lua')
 
 h.test('closing a tablet we never opened does not disturb another UI focus', function()
     Dispatch.ui.setTablet(false)
@@ -98,6 +102,128 @@ h.test('history details never offer a response action for an ended call', functi
     end
     h.assertTrue(sawRoute, 'historical coordinates can still be routed')
     h.assertFalse(sawRespond, 'closed history entries cannot render response controls')
+end)
+
+-- Keep the original immediate AppShell checks above; await only these lifecycle
+-- cases so state can be checked while a tablet or response callback is pending.
+local keys, notices, viewing, sounds, routes = {}, {}, {}, 0, 0
+local appThread, responseThread, pauseResponse
+function _G.CreateThread(fn)
+    local thread = coroutine.create(fn)
+    local ok, err = coroutine.resume(thread)
+    h.assertTrue(ok, err)
+end
+local function resume(thread)
+    local ok, err = coroutine.resume(thread)
+    h.assertTrue(ok, err)
+end
+QB.nui.openApp = function()
+    opened = opened + 1; appThread = coroutine.running(); coroutine.yield('app')
+end
+QB.nui.closeApp = function()
+    closed = closed + 1
+    if appThread then local thread = appThread; appThread = nil; resume(thread) end
+end
+QB.callback.trigger = function(name, value)
+    if name == 'qbdispatch:setViewing' then viewing[#viewing + 1] = value end
+    if name == 'qbdispatch:respond' and pauseResponse then
+        responseThread = coroutine.running(); coroutine.yield('respond'); return nil
+    end
+    return true
+end
+QB.keybind = { add = function(definition) keys[definition.name] = definition end }
+QB.notify = { send = function(payload) notices[#notices + 1] = payload end }
+QB.sound = { playFrontend = function() sounds = sounds + 1 end }
+Dispatch.blip = { refreshCalls = function() end, onCallChanged = function() end,
+    clear = function() end, clearCalls = function() end,
+    route = function() routes = routes + 1 end, callId = function() end }
+dofile(resource .. '/client/sync.lua')
+dofile(resource .. '/client/keybinds.lua')
+dofile(resource .. '/client/exports.lua')
+local function feed() return feeds[#feeds] end
+local function call(id, created)
+    return { id = id, title = 'Incident ' .. id, code = '10-' .. id, priority = 2,
+        message = 'Call details', data = { street = 'Alta Street' }, createdAt = created,
+        expiresAt = 10000, units = {}, coords = { x = 1, y = 2, z = 3 } }
+end
+
+h.test('call pushes publish the complete configured feed and derived service theme', function()
+    Dispatch.state.replaceAll({}); Dispatch.state.select(nil)
+    Dispatch.state.setService('leo', { src = 1 }, {
+        accent = '#3B82F6', feed = { maxVisible = 1, position = 'top-left' }, priorities = Config.priorities,
+    })
+    Dispatch.theme.set(nil)
+    TriggerEvent('qbdispatch:client:call', call(101, 100), 500)
+    TriggerEvent('qbdispatch:client:call', call(102, 200), 500)
+    h.assertEqual(#feed().calls, 2, 'the browser receives calls beyond the visible cap')
+    h.assertEqual(feed().calls[1].id, 102); h.assertEqual(feed().calls[1].data.street, 'Alta Street')
+    h.assertEqual(feed().now, 500); h.assertEqual(feed().me.src, 1)
+    h.assertEqual(feed().config.feed.maxVisible, 1); h.assertEqual(feed().config.feed.position, 'top-left')
+    h.assertEqual(feed().config.priorities, Config.priorities); h.assertEqual(feed().keybinds, Config.keybinds)
+    h.assertEqual(feed().theme.primary, '#3B82F6'); h.assertEqual(feed().theme['brand-soft'], 'soft:#3B82F6')
+    h.assertEqual(feed().theme['brand-border'], 'border:#3B82F6'); h.assertEqual(feed().theme.background, nil)
+    h.assertEqual(#notices, 2); h.assertEqual(sounds, 2)
+end)
+
+h.test('selection can browse live calls and history and publishes server response updates', function()
+    local history = call(99, 1); history.closedAt = 2
+    TriggerEvent('qbdispatch:client:callUpdated', history, 500)
+    keys.qbdispatch_previous.onPressed(); h.assertEqual(feed().selected, 102)
+    keys.qbdispatch_next.onPressed(); h.assertEqual(feed().selected, 101)
+    keys.qbdispatch_next.onPressed(); h.assertEqual(feed().selected, 99)
+    h.assertEqual(feed().calls[3].closedAt, 2)
+    local updated = call(102, 200); updated.units = { { src = 1, state = 'en_route' } }
+    TriggerEvent('qbdispatch:client:callUpdated', updated, 500)
+    h.assertEqual(feed().calls[1].units[1].state, 'en_route')
+end)
+
+h.test('mute, presentation options and theme exports immediately update the closed-tablet feed', function()
+    keys.qbdispatch_toggle.onPressed(); h.assertEqual(feed().hidden, true)
+    TriggerEvent('qbdispatch:client:call', call(103, 300), 500)
+    h.assertEqual(sounds, 2, 'mute still suppresses the incoming tone'); h.assertEqual(#notices, 3)
+    keys.qbdispatch_toggle.onPressed(); h.assertEqual(feed().hidden, false)
+    h.assertEqual(mock.registeredExports.setUiOptions({ maxVisible = 0, position = 'top-center', hidden = true }), true)
+    h.assertEqual(feed().config.feed.maxVisible, 0); h.assertEqual(feed().config.feed.position, 'top-center')
+    h.assertEqual(feed().hidden, true)
+    h.assertEqual(mock.registeredExports.setTheme('#EF4444'), true); h.assertEqual(feed().theme.primary, '#EF4444')
+    local before = #feeds
+    local ok, reason = mock.registeredExports.setTheme(false)
+    h.assertEqual(ok, false); h.assertEqual(type(reason), 'string'); h.assertEqual(#feeds, before)
+    h.assertEqual(mock.registeredExports.setUiOptions(false), false)
+    mock.registeredExports.setUiOptions({ hidden = false })
+end)
+
+h.test('tablet opening hides the feed and explicit or awaited close restores it without raw focus', function()
+    mock.registeredExports.setTablet(true)
+    h.assertEqual(feed(), false); h.assertEqual(viewing[#viewing], true)
+    h.assertEqual(Dispatch.state.data.tabletOpen, true)
+    local before = closed
+    mock.registeredExports.setTablet(false)
+    h.assertEqual(closed, before + 1); h.assertEqual(type(feed()), 'table'); h.assertEqual(viewing[#viewing], false)
+    mock.registeredExports.setTablet(true); h.assertEqual(feed(), false)
+    local thread = appThread; appThread = nil; resume(thread)
+    h.assertEqual(type(feed()), 'table'); h.assertEqual(Dispatch.state.data.tabletOpen, false)
+    h.assertEqual(viewing[#viewing], false); h.assertEqual(#focusCalls, 0)
+end)
+
+h.test('respond fallback publishes its selected call before an awaited callback can complete', function()
+    Dispatch.state.select(nil); Dispatch.ui.render(); pauseResponse = true
+    keys.qbdispatch_respond.onPressed()
+    h.assertEqual(coroutine.status(responseThread), 'suspended')
+    h.assertEqual(feed().selected, 103, 'selection is visible during the server round trip')
+    resume(responseThread); pauseResponse = false
+    h.assertEqual(routes, 0, 'a callback timeout remains silent and cannot route')
+end)
+
+h.test('qblib restart replays the feed while inactive service and player unload clear it', function()
+    local before = #feeds
+    TriggerEvent('onClientResourceStart', 'unrelated'); h.assertEqual(#feeds, before)
+    TriggerEvent('onClientResourceStart', 'qblib'); h.assertEqual(#feeds, before + 1)
+    h.assertEqual(feed().selected, 103)
+    Dispatch.state.setService(nil); Dispatch.ui.render(); h.assertEqual(feed(), false)
+    Dispatch.state.setService('leo', { src = 1 }, { feed = Config.feed }); Dispatch.ui.render()
+    TriggerEvent('QBCore:Client:OnPlayerUnload'); h.assertEqual(feed(), false)
+    h.assertEqual(Dispatch.state.isActive(), false)
 end)
 
 h.report('focus')

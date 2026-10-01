@@ -104,6 +104,7 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
 end)
 
 AddEventHandler('onClientResourceStart', function(resource)
+    if resource == 'qblib' then Dispatch.ui.render(); return end
     if resource ~= GetCurrentResourceName() then return end
     -- A resource restart mid-session has no login event to wait for, so hydrate
     -- directly. The short wait lets qbcore's client mirror finish priming first.
