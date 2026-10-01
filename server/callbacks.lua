@@ -49,7 +49,7 @@ QB.callback.register('qbdispatch:hydrate', function(src)
             feed = Config.feed,
             map = Config.map,
         },
-        calls = Dispatch.api.getCalls({ service = service }),
+        calls = Dispatch.api.getCalls({ service = service, job = unit.job }),
     }
 end, { rateLimit = { max = 5, window = 5000 } })
 
@@ -86,13 +86,14 @@ end, { rateLimit = { max = 30, window = 10000 } })
 
 -- Full call list for the history view, including expired and closed calls.
 QB.callback.register('qbdispatch:getCalls', function(src, filter)
-    local service = serviceOf(src)
+    local service, unit = serviceOf(src)
     if not service then return {} end
 
     filter = type(filter) == 'table' and filter or {}
-    -- Service is forced, never taken from the client: a paramedic must not be
-    -- able to ask for the police call log.
+    -- Bind both filters to the current unit; sharing a service does not grant
+    -- access to calls addressed only to another department.
     filter.service = service
+    filter.job = unit.job
 
     return Dispatch.api.getCalls(filter)
 end, { rateLimit = { max = 10, window = 5000 } })
