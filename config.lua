@@ -108,6 +108,7 @@ Config.ingress = {
 -- resources. Add a resource name here when installing another trusted server
 -- script that intentionally raises free-form dispatch calls.
 Config.trustedCallers = {
+    qbhousing = true,
     qbdispatch = true,
     qbcore = true,
     qbpolice = true,
