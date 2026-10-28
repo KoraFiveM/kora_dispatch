@@ -11,7 +11,7 @@ Dispatch = Dispatch or {}
 ---Sets this player's dispatch accent colour.
 ---
 ---A job resource calls this from its own client code on load:
----    exports.qbdispatch:setTheme('#3B82F6')
+---    exports.kora_dispatch:setTheme('#3B82F6')
 ---@param hex string `#RRGGBB`, or nil to restore the service default.
 ---@return boolean ok, string|nil error
 exports('setTheme', function(hex)

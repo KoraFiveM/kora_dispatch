@@ -1,5 +1,5 @@
 -- Development commands. Registered only while Config.debug is on, and gated on
--- the same admin ACE qbcore's own tooling uses -- these can put arbitrary text
+-- the same admin ACE kora_core's own tooling uses -- these can put arbitrary text
 -- and coordinates in front of every on-duty player of a service, which is not
 -- something an ordinary player should be able to do.
 --
@@ -10,15 +10,15 @@ if not Config.debug then return end
 
 Dispatch = Dispatch or {}
 
--- Ranked levels, most-privileged first, matching qbadmin's own table. Ranked
+-- Ranked levels, most-privileged first, matching kora_admin's own table. Ranked
 -- rather than a single ACE string so a 'god' satisfies an 'admin' requirement --
 -- which a bare IsPlayerAceAllowed(src, 'qbcore.admin') does not.
 local LEVELS = { 'god', 'admin', 'mod', 'user' }
 local PERMISSION_OPTIONS = { prefix = 'qbcore' }
 
----Delegates to qblib rather than hand-rolling an ACE check.
+---Delegates to kora_lib rather than hand-rolling an ACE check.
 ---
----QB.permissions.hasLevel accepts EITHER `qbcore.<level>` or the bare
+---QB.permissions.hasLevel accepts EITHER `kora_core.<level>` or the bare
 ---`group.<level>` principal, and folds in Discord roles where a server
 ---configures them. The hand-rolled version this replaces only ever tested
 ---`qbcore.admin`, so an admin who held `group.admin` -- which is how this test
@@ -66,7 +66,7 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
     if not service then
         -- Default to the caller's own service, so the call actually arrives in
         -- the feed they are looking at.
-        local job = exports.qbcore:getJob(source)
+        local job = exports.kora_core:getJob(source)
         service = job and job.type
         if not service or service == 'none' or service == 'civ' then
             return QB.notify.send(source, {
@@ -102,7 +102,7 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
     -- Naming the cause is the difference between a one-line fix (/police-duty)
     -- and hunting a phantom bug in the push path.
     if count == 0 then
-        local job = exports.qbcore:getJob(source)
+        local job = exports.kora_core:getJob(source)
         local selfService = job and job.type
         local hint = (selfService == service and not (job and job.onduty))
             and ' You are OFF DUTY -- go on duty and it will reach you.'
@@ -121,7 +121,7 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
 end, { permission = 'admin', checkPermission = isAdmin })
 
 QB.commands.add('dispatchclear', 'Close every live call on your service', {}, false, function(source)
-    local job = exports.qbcore:getJob(source)
+    local job = exports.kora_core:getJob(source)
     local service = job and job.type
     if not service then
         return QB.notify.send(source, { message = 'You are not in a dispatch service.', type = 'error' })
@@ -142,7 +142,7 @@ QB.commands.add('dispatchstatus', 'Print dispatch state to the server console', 
     for _, service in ipairs(Dispatch.store.services()) do
         local live = #Dispatch.api.getCalls({ service = service, activeOnly = true })
         local total = #Dispatch.api.getCalls({ service = service })
-        local onDuty = #exports.qbcore:getOnDutyRoster({ jobType = service })
+        local onDuty = #exports.kora_core:getOnDutyRoster({ jobType = service })
         print(('  %-10s %d live / %d in history, %d on duty'):format(service, live, total, onDuty))
     end
 

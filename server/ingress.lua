@@ -1,6 +1,6 @@
 -- Safe ingress for incidents first observed by a client. Gameplay resources
 -- register fixed alert definitions at startup and public events submit only the
--- registered key. qbdispatch owns the shared rate limit, live-call ceiling and
+-- registered key. kora_dispatch owns the shared rate limit, live-call ceiling and
 -- server-side reporter position lookup, so none of those controls are copied
 -- across every job resource.
 
@@ -56,7 +56,7 @@ local function normaliseDefinition(definition)
 
     -- Definition metadata is static, but copy one level so a caller mutating
     -- its registration table after the export returns cannot rewrite live
-    -- policy behind qbdispatch's back.
+    -- policy behind kora_dispatch's back.
     if payload.data then
         local data = {}
         for key, value in pairs(payload.data) do

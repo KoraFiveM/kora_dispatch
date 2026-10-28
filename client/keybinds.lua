@@ -114,7 +114,7 @@ QB.keybind.add({
 ---something else entirely. Silence is right for them and wrong for the off-duty
 ---officer, for whom a dead key looks exactly like a broken resource.
 local function warnIfOffDuty()
-    local job = exports.qbcore:getPlayerData({ 'job' })
+    local job = exports.kora_core:getPlayerData({ 'job' })
     local jobType = job and job.type
     if not jobType or jobType == 'none' or jobType == 'civ' then return end
     if job.onduty then return end

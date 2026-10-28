@@ -1,6 +1,6 @@
--- Dispatch uses qblib's shared AppShell for its tablet. The dispatch resource
+-- Dispatch uses kora_lib's shared AppShell for its tablet. The dispatch resource
 -- remains responsible for call state, response rules, routes and unit data;
--- qblib provides the common application frame, navigation and focus handling.
+-- kora_lib provides the common application frame, navigation and focus handling.
 
 Dispatch = Dispatch or {}
 Dispatch.ui = {}

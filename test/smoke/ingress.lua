@@ -11,7 +11,7 @@ dofile('server/ingress.lua')
 
 net.setPlayer(1, 'unemployed', true)
 net.setPlayer(2, 'police', true)
-net.setInvokingResource('qbpolice')
+net.setInvokingResource('kora_police')
 
 local definition = {
     jobTypes = { 'leo' }, code = '10-31', title = 'Shots Fired',
@@ -59,20 +59,20 @@ h.test('an unregistered or foreign-owned incident cannot be raised', function()
     reset()
     h.assertFalse(Dispatch.ingress.create(1, 'qbpolice:not-real'), 'unknown keys fail closed')
 
-    net.setInvokingResource('qbambulance')
+    net.setInvokingResource('kora_ambulance')
     local id, reason = Dispatch.ingress.create(1, 'qbpolice:test-gunfire')
     h.assertFalse(id, 'another resource cannot borrow a registered incident')
     h.assertTrue(reason:find('does not own', 1, true) ~= nil, 'ownership denial is explicit')
-    net.setInvokingResource('qbpolice')
+    net.setInvokingResource('kora_police')
 end)
 
 h.test('an untrusted resource cannot consume registry capacity', function()
     net.setInvokingResource('untrusted-resource')
-    local registered, reason = net.registeredExports.registerPlayerAlert('untrusted:test', definition, 'qbpolice')
+    local registered, reason = net.registeredExports.registerPlayerAlert('untrusted:test', definition, 'kora_police')
     h.assertFalse(registered, 'registration is denied')
     h.assertTrue(reason:find('not allowed', 1, true) ~= nil,
         'a forged third owner argument is not forwarded by the export')
-    net.setInvokingResource('qbpolice')
+    net.setInvokingResource('kora_police')
 end)
 
 h.test('a job-type entitlement is checked centrally when configured', function()
@@ -107,7 +107,7 @@ h.test('free-form createCall is restricted to trusted resources', function()
     local id, reason = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'Forged' })
     h.assertFalse(id, 'an untrusted resource is denied')
     h.assertTrue(reason:find('not allowed', 1, true) ~= nil, 'and told why')
-    net.setInvokingResource('qbpolice')
+    net.setInvokingResource('kora_police')
 end)
 
 h.test('resource stop removes its registered incident types', function()
@@ -120,7 +120,7 @@ h.test('resource stop removes its registered incident types', function()
     local id = Dispatch.ingress.create(1, 'temporary:test')
     h.assertFalse(id, 'the stale type is gone after its owner stops')
     Config.trustedCallers['temporary-alert-resource'] = nil
-    net.setInvokingResource('qbpolice')
+    net.setInvokingResource('kora_police')
 end)
 
 h.report('ingress')

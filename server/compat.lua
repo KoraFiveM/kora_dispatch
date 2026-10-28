@@ -49,12 +49,12 @@ if Config.compat.legacyInbound then
 end
 
 if Config.compat.coreAlerts then
-    -- qbcore's own Core.dispatch.alert is a raw fan-out with no UI of its own
+    -- kora_core's own Core.dispatch.alert is a raw fan-out with no UI of its own
     -- (its module header says so explicitly). Mirroring it here means anything
-    -- calling exports.qbcore:alert directly gets a real dispatch call rather
+    -- calling exports.kora_core:alert directly gets a real dispatch call rather
     -- than a notification that vanishes.
     --
-    -- The mirror runs on the SERVER off the same local event qbcore fires, not
+    -- The mirror runs on the SERVER off the same local event kora_core fires, not
     -- by listening to its client push -- otherwise every recipient's client
     -- would ask the server to create the same call, once each.
     AddEventHandler('qbcore:server:dispatchAlert', function(payload)

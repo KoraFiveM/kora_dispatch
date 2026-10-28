@@ -19,7 +19,7 @@ local EXPECTED = {
 h.test('every documented server export is registered', function()
     for _, name in ipairs(EXPECTED) do
         h.assertTrue(type(net.registeredExports[name]) == 'function',
-            ('exports.qbdispatch:%s must exist'):format(name))
+            ('exports.kora_dispatch:%s must exist'):format(name))
     end
 end)
 
@@ -38,8 +38,8 @@ h.test('the server surface is documented in docs/index.md', function()
     file:close()
 
     for _, name in ipairs(EXPECTED) do
-        h.assertTrue(docs:find('exports.qbdispatch:' .. name, 1, true) ~= nil,
-            ('exports.qbdispatch:%s is missing from docs/index.md'):format(name))
+        h.assertTrue(docs:find('exports.kora_dispatch:' .. name, 1, true) ~= nil,
+            ('exports.kora_dispatch:%s is missing from docs/index.md'):format(name))
     end
 end)
 
@@ -96,7 +96,7 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
     h.assertTrue(commands > 0, 'sanity: the file registers commands')
     h.assertEqual(gated, commands, 'every dev command must be admin-gated')
 
-    -- Delegated to qblib rather than hand-rolled. A bare
+    -- Delegated to kora_lib rather than hand-rolled. A bare
     -- IsPlayerAceAllowed(src, 'qbcore.admin') refuses an admin who holds the
     -- bare `group.admin` principal -- which is how this framework's own
     -- server.cfg grants it -- and ignores level ranking, so a 'god' would fail

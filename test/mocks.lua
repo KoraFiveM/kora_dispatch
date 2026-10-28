@@ -1,4 +1,4 @@
--- Mocks for smoke-testing qbdispatch under plain lua5.4 (no FiveM, no qbcore).
+-- Mocks for smoke-testing kora_dispatch under plain lua5.4 (no FiveM, no kora_core).
 --
 -- The clock is DRIVEN, not auto-advancing: expiry, fade and retention are the
 -- behaviours most worth testing here, and every one of them is a comparison
@@ -45,7 +45,7 @@ function M.install()
     function _G.CreateThread(fn) fn() end
     function _G.Wait(_) end
     function _G.GetInvokingResource() return invokingResource end
-    function _G.GetCurrentResourceName() return 'qbdispatch' end
+    function _G.GetCurrentResourceName() return 'kora_dispatch' end
     local positionOfPed = {}
     function _G.GetPlayerPed(src) return 1000 + src end
     function _G.GetEntityCoords(entity) return positionOfPed[entity] or { x = 100.0, y = 200.0, z = 30.0 } end
@@ -63,9 +63,9 @@ function M.install()
     -- and defining it here would let a regression back to it pass the tests and
     -- then throw on every heartbeat in game.
 
-    -- --- the qbcore/qblib surfaces qbdispatch actually calls ---
+    -- --- the kora_core/qblib surfaces kora_dispatch actually calls ---
     --
-    -- Registry contents mirror qbcore/shared/jobs.lua, because the single-service
+    -- Registry contents mirror kora_core/shared/jobs.lua, because the single-service
     -- rule is enforced against real job->type relationships and a mock with a
     -- different shape would test nothing.
     local jobs = {
@@ -132,7 +132,7 @@ function M.install()
     end
 
     -- FXServer's `exports` is both callable (exports('name', fn) registers) and
-    -- indexable (exports.qbcore:fn(...) calls). Mocked as a callable table so
+    -- indexable (exports.kora_core:fn(...) calls). Mocked as a callable table so
     -- both forms work, and the registrations are recorded so a test can assert
     -- the public surface.
     --
@@ -140,7 +140,7 @@ function M.install()
     -- qbcore:fn(...)` sugar already declares -- so each method's named
     -- parameters line up with the real export's signature exactly.
     local registered = {}
-    _G.exports = setmetatable({ qbcore = qbcore }, {
+    _G.exports = setmetatable({ kora_core = qbcore }, {
         __call = function(_, name, fn) registered[name] = fn end,
     })
 

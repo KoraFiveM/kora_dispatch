@@ -222,12 +222,12 @@ function Dispatch.api.setUnitState(src, id, state)
     return target or false
 end
 
----The on-duty roster for a service, straight from qbcore's maintained index.
+---The on-duty roster for a service, straight from kora_core's maintained index.
 ---@param filter { service: string|nil, job: string|nil }|nil
 ---@return table[]
 function Dispatch.api.getOnDutyUnits(filter)
     filter = filter or {}
-    return exports.qbcore:getOnDutyRoster({ job = filter.job, jobType = filter.service })
+    return exports.kora_core:getOnDutyRoster({ job = filter.job, jobType = filter.service })
 end
 
 -- --- exports ---------------------------------------------------------------

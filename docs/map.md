@@ -10,7 +10,7 @@ its cause and is miserable to diagnose.
 The tablet therefore renders the complete queue on its own basemap, where the
 marker count costs the game engine nothing. The native map shows only the most
 urgent `Config.map.maxCallBlips` calls (four by default), grouped beneath
-qblib's `Dispatch` category, and the GPS route to the call **you** accepted.
+kora_lib's `Dispatch` category, and the GPS route to the call **you** accepted.
 
 ## The tiles
 

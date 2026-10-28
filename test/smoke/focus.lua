@@ -1,4 +1,4 @@
--- Dispatch delegates browser focus to qblib's AppShell. These checks ensure it
+-- Dispatch delegates browser focus to kora_lib's AppShell. These checks ensure it
 -- never reaches for the global NUI focus native itself and cleans up viewing.
 local h = dofile('test/harness.lua')
 local mocks = dofile('test/mocks.lua'); local mock = mocks.install()
@@ -218,7 +218,7 @@ end)
 h.test('qblib restart replays the feed while inactive service and player unload clear it', function()
     local before = #feeds
     TriggerEvent('onClientResourceStart', 'unrelated'); h.assertEqual(#feeds, before)
-    TriggerEvent('onClientResourceStart', 'qblib'); h.assertEqual(#feeds, before + 1)
+    TriggerEvent('onClientResourceStart', 'kora_lib'); h.assertEqual(#feeds, before + 1)
     h.assertEqual(feed().selected, 103)
     Dispatch.state.setService(nil); Dispatch.ui.render(); h.assertEqual(feed(), false)
     Dispatch.state.setService('leo', { src = 1 }, { feed = Config.feed }); Dispatch.ui.render()

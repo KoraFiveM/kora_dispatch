@@ -19,7 +19,7 @@ You need a job whose `type` is a dispatch service. Stock: `police` → `leo`,
 /police-duty
 ```
 
-`/setjob` is qbadmin. For EMS it's `/ems-duty`; for police `/police-duty` (added
+`/setjob` is kora_admin. For EMS it's `/ems-duty`; for police `/police-duty` (added
 for exactly this reason — duty is normally a target zone at the station, which
 means travelling there before you can test anything).
 
@@ -139,7 +139,7 @@ Worth doing once, because a couple of things only exist between people:
 - **Feed never appears** → are you on duty? `/dispatchstatus` prints the on-duty
   count per service to the server console.
 - **Map is blank or grey** → the tiles are served from
-  `nui://qbdispatch/web/build/map/...`; check the F8 console for 404s.
+  `nui://kora_dispatch/web/build/map/...`; check the F8 console for 404s.
 - **Markers in the wrong place** → recalibrate with `/dispatchcoords`, see
   [map.md](map.md).
 - **Mouse stuck after the tablet** → that's a bug, not a setting; `/dispatchstatus`

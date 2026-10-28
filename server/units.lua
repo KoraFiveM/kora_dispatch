@@ -5,7 +5,7 @@
 --
 -- 1. Positions are read SERVER-side. Under OneSync the server can read a
 --    networked ped's coordinates directly, so no client runs a loop, no client
---    sends its position, and there is no round trip. qbambulance's /911e already
+--    sends its position, and there is no round trip. kora_ambulance's /911e already
 --    relies on the same property.
 -- 2. The tick only runs while somebody is actually looking. Clients announce
 --    when their tablet opens and closes; a service with no viewers is skipped
@@ -51,7 +51,7 @@ local function iconForVehicle(vehicle)
 end
 
 ---A live position snapshot for one on-duty unit, or nil when their ped is gone.
----@param unit table Roster record from qbcore.
+---@param unit table Roster record from kora_core.
 ---@return table|nil
 local function snapshot(unit)
     local ped = GetPlayerPed(unit.src)
@@ -94,7 +94,7 @@ end
 local function broadcast(service, watchers)
     local units = {}
     local positions = {}
-    for _, unit in ipairs(exports.qbcore:getOnDutyRoster({ jobType = service })) do
+    for _, unit in ipairs(exports.kora_core:getOnDutyRoster({ jobType = service })) do
         local snap = snapshot(unit)
         if snap then
             units[#units + 1] = snap
@@ -136,7 +136,7 @@ end
 function Dispatch.units.tick()
     local watchersByService = {}
     for src, service in pairs(viewers) do
-        local job = exports.qbcore:getJob(src)
+        local job = exports.kora_core:getJob(src)
         if not job or not job.onduty or (job.type or 'none') ~= service then
             viewers[src] = nil
         else

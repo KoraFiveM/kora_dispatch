@@ -2,20 +2,22 @@ fx_version 'cerulean'
 game 'gta5'
 lua54 'yes'
 
-name 'qbdispatch'
+name 'kora_dispatch'
+-- Keep the legacy resource name resolvable for exports['qbdispatch'] callers.
+provide 'qbdispatch'
 author 'qbcore2'
 version '0.1.0'
 description 'Job-agnostic dispatch: call lifecycle, keyboard-driven alert feed, and a tablet with a rendered map'
 
 -- Every job resource that raises calls depends on this one, so it has to be
--- running before them. qbcore supplies the job/duty indexes the recipient
--- resolution reads; qblib supplies keybinds, timers, sound and blips.
-dependency 'qbtheme'
-dependency 'qblib'
-dependency 'qbcore'
+-- running before them. kora_core supplies the job/duty indexes the recipient
+-- resolution reads; kora_lib supplies keybinds, timers, sound and blips.
+dependency 'kora_theme'
+dependency 'kora_lib'
+dependency 'kora_core'
 
-shared_script '@qblib/init.lua'
-shared_script '@qbcore/init.lua'
+shared_script '@kora_lib/init.lua'
+shared_script '@kora_core/init.lua'
 
 shared_scripts {
     'config.lua',
@@ -48,7 +50,7 @@ server_scripts {
 }
 
 -- state.lua owns the local call cache every other client file reads; ui.lua
--- projects it through qblib's shared AppShell. sync.lua wires inbound events
+-- projects it through kora_lib's shared AppShell. sync.lua wires inbound events
 -- and keybinds/exports are the entry points into everything above.
 client_scripts {
     'client/state.lua',

@@ -2,7 +2,7 @@ Config = {}
 
 -- --- services ---------------------------------------------------------------
 --
--- A "service" is a qbcore JOB TYPE (`type` in qbcore/shared/jobs.lua), not a job
+-- A "service" is a kora_core JOB TYPE (`type` in kora_core/shared/jobs.lua), not a job
 -- name. One service covers every job carrying that type -- 'leo' reaches police,
 -- sheriff and state troopers at once -- which is the whole reason calls target
 -- types rather than enumerating job names.
@@ -13,7 +13,7 @@ Config = {}
 -- can't clear independently and a history full of other people's calls.
 --
 -- `accent` is only the DEFAULT theme. A job resource sets its own at runtime
--- with exports.qbdispatch:setTheme('#RRGGBB') from its client, which is what
+-- with exports.kora_dispatch:setTheme('#RRGGBB') from its client, which is what
 -- lets one player's dispatch be blue and another's red on the same server.
 Config.services = {
     leo = {
@@ -93,7 +93,7 @@ Config.dispatch = {
 --
 -- A gameplay resource can register a fixed alert type and then raise it for a
 -- player through `createPlayerCall`. The player supplies neither presentation
--- nor coordinates: qbdispatch reads their networked ped position and reuses the
+-- nor coordinates: kora_dispatch reads their networked ped position and reuses the
 -- registered definition. This is the safe bridge for client-observed incidents
 -- such as shots fired; fully server-observed incidents keep using createCall.
 Config.ingress = {
@@ -108,13 +108,13 @@ Config.ingress = {
 -- resources. Add a resource name here when installing another trusted server
 -- script that intentionally raises free-form dispatch calls.
 Config.trustedCallers = {
-    qbhousing = true,
-    qbdispatch = true,
-    qbcore = true,
-    qbpolice = true,
-    qbambulance = true,
-    qbbusinesses = true,
-    qbrobberies = true,
+    kora_housing = true,
+    kora_dispatch = true,
+    kora_core = true,
+    kora_police = true,
+    kora_ambulance = true,
+    kora_businesses = true,
+    kora_robberies = true,
 }
 
 -- --- feed -------------------------------------------------------------------
@@ -125,9 +125,9 @@ Config.feed = {
     -- rolling window (maxVisible) and is not paginated -- it is glanceable, not
     -- browsable. The tablet is the browsable one.
     pageSize = 8,
-    -- Every other overlay in the framework has already claimed a corner: qbhud
-    -- owns bottom-center/bottom-right/top-right, qblib toasts own top-right,
-    -- qbinventory's item stack owns bottom-right, and the native minimap owns
+    -- Every other overlay in the framework has already claimed a corner: kora_hud
+    -- owns bottom-center/bottom-right/top-right, kora_lib toasts own top-right,
+    -- kora_inventory's item stack owns bottom-right, and the native minimap owns
     -- bottom-left. Left-center is the only large uncontested region.
 }
 
@@ -218,17 +218,17 @@ Config.compat = {
     --
     -- OFF by default, and the reason matters. Two other things already listen on
     -- those names:
-    --   * qbambulance's own server/compat/hospital.lua, which knows its job and
+    --   * kora_ambulance's own server/compat/hospital.lua, which knows its job and
     --     its own wording -- a better call than this generic one can build.
-    --   * qbcore itself, whose Core.dispatch.alert fires police:server:policeAlert
+    --   * kora_core itself, whose Core.dispatch.alert fires police:server:policeAlert
     --     as a LOCAL TriggerEvent in its legacy fan-out. With this enabled and
-    --     `coreAlerts` on, one exports.qbcore:alert would produce TWO calls: one
+    --     `coreAlerts` on, one exports.kora_core:alert would produce TWO calls: one
     --     from the mirror below, one from the legacy event it just fired.
     --
     -- Enable it only on a server with no job resource handling these names.
     legacyInbound = false,
-    -- qbcore's own Core.dispatch.alert push (qbcore:client:dispatchAlert) is
-    -- also rendered, so anything calling exports.qbcore:alert directly still
+    -- kora_core's own Core.dispatch.alert push (qbcore:client:dispatchAlert) is
+    -- also rendered, so anything calling exports.kora_core:alert directly still
     -- reaches a real UI instead of nothing.
     coreAlerts = true,
 }
@@ -238,7 +238,7 @@ Config.compat = {
 -- exercise dispatch without needing a second player or an actual crime.
 Config.debug = true
 
--- Registers this resource-owned configuration with qblib without changing its public Config table.
+-- Registers this resource-owned configuration with kora_lib without changing its public Config table.
 if QB and QB.config and QB.config.adopt then
     Config.feed.position = QB.config.enum(Config.feed.position, {
         label = 'Dispatch feed position',

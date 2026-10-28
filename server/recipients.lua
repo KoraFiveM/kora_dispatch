@@ -8,7 +8,7 @@ Dispatch.recipients = {}
 ---@param jobName string
 ---@return string|nil
 function Dispatch.recipients.typeOfJob(jobName)
-    local record = exports.qbcore:getShared('jobs', jobName)
+    local record = exports.kora_core:getShared('jobs', jobName)
     return record and (record.type or 'none') or nil
 end
 
@@ -17,7 +17,7 @@ end
 ---@return string[]
 function Dispatch.recipients.jobsOfType(jobType)
     local out = {}
-    for _, record in ipairs(exports.qbcore:allShared('jobs')) do
+    for _, record in ipairs(exports.kora_core:allShared('jobs')) do
         if (record.type or 'none') == jobType then out[#out + 1] = record.name end
     end
     return out
@@ -96,12 +96,12 @@ function Dispatch.recipients.sources(service, jobs)
 
     -- Covering the whole service means the type index answers it directly.
     if #ofType == #jobs then
-        return exports.qbcore:getPlayersByJobType(service, true)
+        return exports.kora_core:getPlayersByJobType(service, true)
     end
 
     local seen, out = {}, {}
     for _, jobName in ipairs(jobs) do
-        for _, src in ipairs(exports.qbcore:getPlayersByJob(jobName, true)) do
+        for _, src in ipairs(exports.kora_core:getPlayersByJob(jobName, true)) do
             if not seen[src] then
                 seen[src] = true
                 out[#out + 1] = src
@@ -115,10 +115,10 @@ end
 ---@param src integer
 ---@return table|nil
 function Dispatch.recipients.unitOf(src)
-    local job = exports.qbcore:getJob(src)
+    local job = exports.kora_core:getJob(src)
     if not job then return nil end
 
-    for _, unit in ipairs(exports.qbcore:getOnDutyRoster({ job = job.name })) do
+    for _, unit in ipairs(exports.kora_core:getOnDutyRoster({ job = job.name })) do
         if unit.src == src then return unit end
     end
     return nil

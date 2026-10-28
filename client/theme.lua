@@ -3,7 +3,7 @@
 -- The accent is applied CLIENT-side, on purpose: two players on the same server
 -- see different colours at the same moment because they belong to different
 -- services, so this can never be a server setting. A job resource calls
--- exports.qbdispatch:setTheme('#3B82F6') from its own client code and owns its
+-- exports.kora_dispatch:setTheme('#3B82F6') from its own client code and owns its
 -- own brand.
 
 Dispatch = Dispatch or {}

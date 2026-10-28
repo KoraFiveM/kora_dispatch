@@ -1,7 +1,7 @@
 -- The authoritative call registry. Everything a client sees about a call comes
 -- from here; a client never invents, mutates or expires a call locally.
 --
--- Calls are kept per SERVICE (a qbcore job type). That partitioning is not
+-- Calls are kept per SERVICE (a kora_core job type). That partitioning is not
 -- cosmetic: it is what makes "police and EMS are two separate calls" work, since
 -- each service gets its own feed, its own history and its own retention budget.
 -- A busy police shift can never push an ambulance call out of the EMS history.

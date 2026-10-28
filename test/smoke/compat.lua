@@ -5,7 +5,7 @@ local mocks = dofile('test/mocks.lua'); local net = mocks.install()
 dofile('config.lua')
 
 -- Legacy inbound ships OFF (a job resource usually owns those event names, and
--- qbcore re-fires police:server:policeAlert itself -- see the Config comment).
+-- kora_core re-fires police:server:policeAlert itself -- see the Config comment).
 -- Enabled here because this suite is what proves the code path works when a
 -- server does turn it on.
 Config.compat.legacyInbound = true
@@ -74,7 +74,7 @@ h.test('qbcore alerts are mirrored exactly once', function()
     -- push instead would record the same incident once per recipient.
     Dispatch.store._reset()
     TriggerEvent('qbcore:server:dispatchAlert', {
-        jobs = { 'police' }, title = 'Core alert', message = 'via exports.qbcore:alert',
+        jobs = { 'police' }, title = 'Core alert', message = 'via exports.kora_core:alert',
     }, 1)
 
     h.assertEqual(#Dispatch.api.getCalls({ service = 'leo' }), 1, 'exactly one call recorded')
