@@ -69,7 +69,7 @@ h.test('the AppShell payload includes live map tiles, call and unit markers, and
 
     local map = mapView.content.blocks[1]
     h.assertEqual(map.type, 'map', 'the first live-operations block is the qblib map')
-    h.assertTrue(map.tiles.url:find('cfx%-nui%-qbdispatch/web/build/map/mainmap'), 'tiles remain owned by qbdispatch')
+    h.assertTrue(map.tiles.url:find('cfx%-nui%-kora_dispatch/web/build/map/mainmap'), 'tiles remain owned by kora_dispatch')
     h.assertEqual(#map.markers, 2, 'one call and one unit are projected into the map payload')
     h.assertEqual(map.markers[1].action, 'dispatch:select', 'call markers route through the declared AppShell action')
     h.assertEqual(map.markers[1].fadeDuration, (999999 - 1) * (1 - Config.map.fadeHoldFraction),

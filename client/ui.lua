@@ -66,7 +66,7 @@ local function mapBlock(S, calls)
     return {
         type = 'map', id = 'live-map', title = 'Live dispatch map',
         tiles = {
-            url = ('https://cfx-nui-qbdispatch/web/build/%s/{z}/{x}/{y}.%s')
+            url = ('https://cfx-nui-kora_dispatch/web/build/%s/{z}/{x}/{y}.%s')
                 :format(map.tilePath, map.tileExtension or 'jpg'),
             tileSize = map.tileSize, grid = map.grid, calibration = map.calibration,
         },
