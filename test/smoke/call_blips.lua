@@ -50,7 +50,7 @@ h.test('map markers show the most urgent calls and do not set a route', function
     h.assertEqual(created[1].options.shortRange, false, 'the marker is visible on the full map')
     h.assertEqual(created[1].options.category, 'Dispatch', 'call markers use the canonical Dispatch category')
     h.assertEqual(created[1].options.name, '10-2 - Call 2', 'the alert identity is supplied without a preformatted category')
-    h.assertEqual(created[1].options.label, nil, 'qblib composes the display label')
+    h.assertEqual(created[1].options.label, nil, 'kora_lib composes the display label')
     h.assertEqual(created[1].options.info.rows[1].value, 'Critical', 'the panel describes call priority')
     h.assertEqual(created[1].options.info.rows[3].value, 'No details supplied.', 'the panel handles a missing call message')
 end)

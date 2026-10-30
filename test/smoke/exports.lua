@@ -102,7 +102,7 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
     -- server.cfg grants it -- and ignores level ranking, so a 'god' would fail
     -- an 'admin' gate.
     h.assertTrue(source:find('QB.permissions.hasLevel', 1, true) ~= nil,
-        'the permission check must go through qblib, not a hand-rolled ACE test')
+        'the permission check must go through kora_lib, not a hand-rolled ACE test')
     -- Comment lines stripped first: the rationale above mentions the native by
     -- name, and matching prose would make this assertion unfixable.
     local code = source:gsub('%-%-[^\n]*', '')
@@ -142,7 +142,7 @@ h.test('the AppShell dispatch manifest does not own a second browser frame', fun
     file:close()
 
     h.assertTrue(manifest:find('ui_page', 1, true) == nil,
-        'dispatch must use qblib AppShell instead of owning a second NUI frame')
+        'dispatch must use kora_lib AppShell instead of owning a second NUI frame')
 end)
 
 h.report('exports')

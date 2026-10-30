@@ -68,7 +68,7 @@ h.test('the AppShell payload includes live map tiles, call and unit markers, and
     end
 
     local map = mapView.content.blocks[1]
-    h.assertEqual(map.type, 'map', 'the first live-operations block is the qblib map')
+    h.assertEqual(map.type, 'map', 'the first live-operations block is the kora_lib map')
     h.assertTrue(map.tiles.url:find('cfx%-nui%-kora_dispatch/web/build/map/mainmap'), 'tiles remain owned by kora_dispatch')
     h.assertEqual(#map.markers, 2, 'one call and one unit are projected into the map payload')
     h.assertEqual(map.markers[1].action, 'dispatch:select', 'call markers route through the declared AppShell action')
@@ -215,7 +215,7 @@ h.test('respond fallback publishes its selected call before an awaited callback 
     h.assertEqual(routes, 0, 'a callback timeout remains silent and cannot route')
 end)
 
-h.test('qblib restart replays the feed while inactive service and player unload clear it', function()
+h.test('kora_lib restart replays the feed while inactive service and player unload clear it', function()
     local before = #feeds
     TriggerEvent('onClientResourceStart', 'unrelated'); h.assertEqual(#feeds, before)
     TriggerEvent('onClientResourceStart', 'kora_lib'); h.assertEqual(#feeds, before + 1)

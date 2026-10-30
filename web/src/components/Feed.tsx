@@ -19,7 +19,7 @@ const POSITION: Record<string, string> = {
  * ever losing camera control. That is the difference between dispatch being
  * usable during a pursuit and being something you deal with afterwards.
  *
- * Placement: qbhud owns bottom-center, bottom-right and top-right; qblib's
+ * Placement: qbhud owns bottom-center, bottom-right and top-right; kora_lib's
  * toasts own top-right; qbinventory's item stack owns bottom-right; the native
  * minimap owns bottom-left. Left-center is the only large uncontested region,
  * and it is configurable for servers that have rearranged things.
