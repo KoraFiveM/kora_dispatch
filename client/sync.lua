@@ -13,7 +13,7 @@ local function hydrate()
     -- all the state a later request would fetch.
     if hydrating then return end
     hydrating = true
-    local data = QB.callback.trigger('qbdispatch:hydrate')
+    local data = Kora.callback.trigger('qbdispatch:hydrate')
 
     if type(data) ~= 'table' or not data.service then
         -- Tablet first: it reads the state that setService(nil) is about to
@@ -50,7 +50,7 @@ RegisterNetEvent('qbdispatch:client:call', function(call, serverNow)
     if not isNew then return end
 
     if Config.alerts and Config.alerts.notify then
-        QB.notify.send({
+        Kora.notify.send({
             title = call.code and ('Dispatch ' .. call.code) or 'New dispatch call',
             message = call.title or call.message or 'A new call is waiting.',
             type = call.priority == 1 and 'error' or (call.priority == 2 and 'warning' or 'info'),
@@ -69,7 +69,7 @@ RegisterNetEvent('qbdispatch:client:call', function(call, serverNow)
     local serviceConfig = Dispatch.state.data.config
     local sound = call.sound or (serviceConfig and serviceConfig.sound) or Config.defaultService.sound
     if type(sound) == 'table' and sound.name and sound.set then
-        QB.sound.playFrontend(sound.name, sound.set)
+        Kora.sound.playFrontend(sound.name, sound.set)
     end
 end)
 

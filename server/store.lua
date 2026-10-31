@@ -320,7 +320,7 @@ function Dispatch.store.detachAll(src)
     return affected
 end
 
----Retention sweep across every service. Driven by a QB.timers interval so it
+---Retention sweep across every service. Driven by a Kora.timers interval so it
 ---dies with the resource.
 function Dispatch.store.sweep()
     local now = GetGameTimer()

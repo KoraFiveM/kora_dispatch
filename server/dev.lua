@@ -18,7 +18,7 @@ local PERMISSION_OPTIONS = { prefix = 'qbcore' }
 
 ---Delegates to kora_lib rather than hand-rolling an ACE check.
 ---
----QB.permissions.hasLevel accepts EITHER `kora_core.<level>` or the bare
+---Kora.permissions.hasLevel accepts EITHER `kora_core.<level>` or the bare
 ---`group.<level>` principal, and folds in Discord roles where a server
 ---configures them. The hand-rolled version this replaces only ever tested
 ---`qbcore.admin`, so an admin who held `group.admin` -- which is how this test
@@ -28,7 +28,7 @@ local PERMISSION_OPTIONS = { prefix = 'qbcore' }
 ---@param permission string
 ---@return boolean
 local function isAdmin(source, permission)
-    return QB.permissions.hasLevel(source, permission, LEVELS, PERMISSION_OPTIONS)
+    return Kora.permissions.hasLevel(source, permission, LEVELS, PERMISSION_OPTIONS)
 end
 
 ---The caller's own position, so a test call lands somewhere they can drive to
@@ -57,7 +57,7 @@ local SAMPLES = {
             data = { plate = 'ABC 123', vehicle = 'Bison' } },
 }
 
-QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
+Kora.commands.add('dispatchtest', 'Raise a test call to your own service', {
     { name = 'priority', help = '1 critical, 2 high, 3 routine (default 2)' },
     { name = 'service', help = 'Override the service, e.g. leo / ems / recovery' },
 }, false, function(source, args)
@@ -69,7 +69,7 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
         local job = exports.kora_core:getJob(source)
         service = job and job.type
         if not service or service == 'none' or service == 'civ' then
-            return QB.notify.send(source, {
+            return Kora.notify.send(source, {
                 message = 'You are not in a dispatch service. Pass one: /dispatchtest 1 leo',
                 type = 'error',
             })
@@ -91,7 +91,7 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
     })
 
     if not id then
-        return QB.notify.send(source, { message = ('Test call refused: %s'):format(count), type = 'error' })
+        return Kora.notify.send(source, { message = ('Test call refused: %s'):format(count), type = 'error' })
     end
 
     -- A call reaching nobody is the single most confusing outcome of this
@@ -108,23 +108,23 @@ QB.commands.add('dispatchtest', 'Raise a test call to your own service', {
             and ' You are OFF DUTY -- go on duty and it will reach you.'
             or ' Nobody is on duty for that service.'
 
-        return QB.notify.send(source, {
+        return Kora.notify.send(source, {
             message = ('Raised #%d (%s, P%d) but it reached 0 units.%s'):format(id, service, priority, hint),
             type = 'error',
         })
     end
 
-    QB.notify.send(source, {
+    Kora.notify.send(source, {
         message = ('Raised #%d (%s, P%d) to %d unit(s).'):format(id, service, priority, count),
         type = 'success',
     })
 end, { permission = 'admin', checkPermission = isAdmin })
 
-QB.commands.add('dispatchclear', 'Close every live call on your service', {}, false, function(source)
+Kora.commands.add('dispatchclear', 'Close every live call on your service', {}, false, function(source)
     local job = exports.kora_core:getJob(source)
     local service = job and job.type
     if not service then
-        return QB.notify.send(source, { message = 'You are not in a dispatch service.', type = 'error' })
+        return Kora.notify.send(source, { message = 'You are not in a dispatch service.', type = 'error' })
     end
 
     local closed = 0
@@ -132,10 +132,10 @@ QB.commands.add('dispatchclear', 'Close every live call on your service', {}, fa
         if Dispatch.api.closeCall(call.id, 'cleared by an admin') then closed = closed + 1 end
     end
 
-    QB.notify.send(source, { message = ('Closed %d call(s).'):format(closed), type = 'success' })
+    Kora.notify.send(source, { message = ('Closed %d call(s).'):format(closed), type = 'success' })
 end, { permission = 'admin', checkPermission = isAdmin })
 
-QB.commands.add('dispatchstatus', 'Print dispatch state to the server console', {}, false, function(source)
+Kora.commands.add('dispatchstatus', 'Print dispatch state to the server console', {}, false, function(source)
     print('[qbdispatch] ---- status ----')
     print(('  tablet viewers: %d'):format(Dispatch.units.viewerCount()))
 
@@ -146,5 +146,5 @@ QB.commands.add('dispatchstatus', 'Print dispatch state to the server console', 
         print(('  %-10s %d live / %d in history, %d on duty'):format(service, live, total, onDuty))
     end
 
-    QB.notify.send(source, { message = 'Dispatch status printed to the server console.', type = 'info' })
+    Kora.notify.send(source, { message = 'Dispatch status printed to the server console.', type = 'info' })
 end, { permission = 'admin', checkPermission = isAdmin })

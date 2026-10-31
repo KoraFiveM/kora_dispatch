@@ -7,7 +7,7 @@ dofile('server/store.lua')
 dofile('server/recipients.lua')
 dofile('server/api.lua')
 local callbacks, options = {}, {}
-QB.callback.register = function(name, fn, config) callbacks[name], options[name] = fn, config end
+Kora.callback.register = function(name, fn, config) callbacks[name], options[name] = fn, config end
 dofile(arg[1] or 'server/callbacks.lua')
 net.setPlayer(1, 'police', true)
 net.setPlayer(2, 'sheriff', true)

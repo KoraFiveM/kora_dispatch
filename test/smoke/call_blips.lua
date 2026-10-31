@@ -7,7 +7,7 @@ dofile('config.lua')
 local created, removed = {}, {}
 local infoUpdates = {}
 local nextBlip = 100
-QB.blips = {
+Kora.blips = {
     create = function(coords, options)
         nextBlip = nextBlip + 1
         created[#created + 1] = { id = nextBlip, coords = coords, options = options }

@@ -7,7 +7,7 @@ dofile(resource .. '/config.lua')
 
 local focusCalls, opened, closed, definitions, feeds = {}, 0, 0, {}, {}
 function _G.SetNuiFocus(mouse, keyboard) focusCalls[#focusCalls + 1] = { mouse, keyboard } end
-_G.QB = {
+_G.Kora = {
     nui = {
         registerApp = function(definition) definitions[#definitions + 1] = definition end,
         openApp = function() opened = opened + 1 end,
@@ -117,23 +117,23 @@ local function resume(thread)
     local ok, err = coroutine.resume(thread)
     h.assertTrue(ok, err)
 end
-QB.nui.openApp = function()
+Kora.nui.openApp = function()
     opened = opened + 1; appThread = coroutine.running(); coroutine.yield('app')
 end
-QB.nui.closeApp = function()
+Kora.nui.closeApp = function()
     closed = closed + 1
     if appThread then local thread = appThread; appThread = nil; resume(thread) end
 end
-QB.callback.trigger = function(name, value)
+Kora.callback.trigger = function(name, value)
     if name == 'qbdispatch:setViewing' then viewing[#viewing + 1] = value end
     if name == 'qbdispatch:respond' and pauseResponse then
         responseThread = coroutine.running(); coroutine.yield('respond'); return nil
     end
     return true
 end
-QB.keybind = { add = function(definition) keys[definition.name] = definition end }
-QB.notify = { send = function(payload) notices[#notices + 1] = payload end }
-QB.sound = { playFrontend = function() sounds = sounds + 1 end }
+Kora.keybind = { add = function(definition) keys[definition.name] = definition end }
+Kora.notify = { send = function(payload) notices[#notices + 1] = payload end }
+Kora.sound = { playFrontend = function() sounds = sounds + 1 end }
 Dispatch.blip = { refreshCalls = function() end, onCallChanged = function() end,
     clear = function() end, clearCalls = function() end,
     route = function() routes = routes + 1 end, callId = function() end }

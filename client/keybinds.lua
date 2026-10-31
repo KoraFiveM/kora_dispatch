@@ -5,7 +5,7 @@
 -- again to clear. The tablet is for when you want the map, not a step in the
 -- normal flow.
 --
--- Every bind goes through QB.keybind.add, so all of them appear in FiveM's own
+-- Every bind goes through Kora.keybind.add, so all of them appear in FiveM's own
 -- key-binding settings and every player can rebind them.
 
 Dispatch = Dispatch or {}
@@ -18,7 +18,7 @@ local function feedActive()
     return Dispatch.state.isActive() and not Dispatch.state.data.tabletOpen
 end
 
-QB.keybind.add({
+Kora.keybind.add({
     name = 'qbdispatch_previous',
     description = 'Dispatch: previous call',
     defaultKey = Config.keybinds.previous,
@@ -29,7 +29,7 @@ QB.keybind.add({
     end,
 })
 
-QB.keybind.add({
+Kora.keybind.add({
     name = 'qbdispatch_next',
     description = 'Dispatch: next call (scrolls into history)',
     defaultKey = Config.keybinds.next,
@@ -40,7 +40,7 @@ QB.keybind.add({
     end,
 })
 
-QB.keybind.add({
+Kora.keybind.add({
     name = 'qbdispatch_respond',
     description = 'Dispatch: accept / en route / on scene / clear',
     defaultKey = Config.keybinds.respond,
@@ -65,10 +65,10 @@ QB.keybind.add({
             -- refused. A nil `state` is a timed-out callback, NOT a refusal, so
             -- it must stay silent -- inventing a reason for a dropped round trip
             -- would tell the player something the server never said.
-            local state, reason = QB.callback.trigger('qbdispatch:respond', call.id)
+            local state, reason = Kora.callback.trigger('qbdispatch:respond', call.id)
 
             if state == false then
-                if reason then QB.notify.send({ message = reason, type = 'error' }) end
+                if reason then Kora.notify.send({ message = reason, type = 'error' }) end
                 return
             end
 
@@ -85,7 +85,7 @@ QB.keybind.add({
     end,
 })
 
-QB.keybind.add({
+Kora.keybind.add({
     name = 'qbdispatch_toggle',
     description = 'Dispatch: hide/show the dispatch UI',
     defaultKey = Config.keybinds.toggle,
@@ -119,13 +119,13 @@ local function warnIfOffDuty()
     if not jobType or jobType == 'none' or jobType == 'civ' then return end
     if job.onduty then return end
 
-    QB.notify.send({
+    Kora.notify.send({
         message = 'You are off duty -- dispatch is closed. Go on duty to open the tablet.',
         type = 'error',
     })
 end
 
-QB.keybind.add({
+Kora.keybind.add({
     name = 'qbdispatch_tablet',
     description = 'Dispatch: open tablet',
     defaultKey = Config.keybinds.tablet,
@@ -140,7 +140,7 @@ QB.keybind.add({
 -- standing on two landmarks. Not a gameplay command; it reads nothing and
 -- changes nothing.
 RegisterCommand('dispatchcoords', function()
-    local coords = QB.cache.coords()
+    local coords = Kora.cache.coords()
     if not coords then return end
 
     local calibration = Config.map.calibration

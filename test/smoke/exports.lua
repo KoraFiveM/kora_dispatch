@@ -90,7 +90,7 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
 
     -- Every command in the file carries a permission gate.
     local commands, gated = 0, 0
-    for _ in source:gmatch("QB%.commands%.add%(") do commands = commands + 1 end
+    for _ in source:gmatch("Kora%.commands%.add%(") do commands = commands + 1 end
     for _ in source:gmatch("permission = 'admin'") do gated = gated + 1 end
 
     h.assertTrue(commands > 0, 'sanity: the file registers commands')
@@ -101,7 +101,7 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
     -- bare `group.admin` principal -- which is how this framework's own
     -- server.cfg grants it -- and ignores level ranking, so a 'god' would fail
     -- an 'admin' gate.
-    h.assertTrue(source:find('QB.permissions.hasLevel', 1, true) ~= nil,
+    h.assertTrue(source:find('Kora.permissions.hasLevel', 1, true) ~= nil,
         'the permission check must go through kora_lib, not a hand-rolled ACE test')
     -- Comment lines stripped first: the rationale above mentions the native by
     -- name, and matching prose would make this assertion unfixable.

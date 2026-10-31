@@ -36,7 +36,7 @@ function Dispatch.theme.set(hex)
 
     current = hex
 
-    local ok, tokens = pcall(function() return QB.theme.tokens(hex) end)
+    local ok, tokens = pcall(function() return Kora.theme.tokens(hex) end)
     if not ok or type(tokens) ~= 'table' then
         return false, 'failed to derive theme tokens'
     end

@@ -259,5 +259,5 @@ AddEventHandler('QBCore:Server:SetDuty', function(src, onDuty)
 end)
 
 CreateThread(function()
-    QB.timers.setInterval(Dispatch.store.sweep, Config.history.sweepInterval)
+    Kora.timers.setInterval(Dispatch.store.sweep, Config.history.sweepInterval)
 end)

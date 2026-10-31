@@ -164,7 +164,7 @@ local function appDefinition()
             end
             local response = actionId:match('^dispatch:respond:(.+)$')
             if not response then error('Unknown dispatch action.') end
-            local state, err = QB.callback.trigger('qbdispatch:respond', call.id, response)
+            local state, err = Kora.callback.trigger('qbdispatch:respond', call.id, response)
             if state == false then error(err or 'Could not update the call.') end
             return { update = { navigation = appDefinition().navigation } }
         end,
@@ -174,9 +174,9 @@ end
 function Dispatch.ui.render()
     local S = Dispatch.state.data
     if not Dispatch.state.isActive() or S.tabletOpen then
-        QB.nui.setDispatchFeed(false)
+        Kora.nui.setDispatchFeed(false)
     else
-        QB.nui.setDispatchFeed({
+        Kora.nui.setDispatchFeed({
             now = Dispatch.state.now(), calls = Dispatch.state.all(),
             selected = S.selected, hidden = S.hidden, me = S.unit,
             config = {
@@ -186,11 +186,11 @@ function Dispatch.ui.render()
             keybinds = Config.keybinds, theme = Dispatch.theme.tokens(),
         })
     end
-    if S.tabletOpen then QB.nui.registerApp(appDefinition()) end
+    if S.tabletOpen then Kora.nui.registerApp(appDefinition()) end
 end
 
 local function setViewing(open)
-    CreateThread(function() QB.callback.trigger('qbdispatch:setViewing', open) end)
+    CreateThread(function() Kora.callback.trigger('qbdispatch:setViewing', open) end)
 end
 
 ---@param open boolean
@@ -198,7 +198,7 @@ function Dispatch.ui.setTablet(open)
     if not open then
         if not Dispatch.state.data.tabletOpen then return end
         Dispatch.state.setTabletOpen(false)
-        QB.nui.closeApp('qbdispatch:tablet')
+        Kora.nui.closeApp('qbdispatch:tablet')
         setViewing(false)
         Dispatch.ui.render()
         return
@@ -208,7 +208,7 @@ function Dispatch.ui.setTablet(open)
     Dispatch.ui.render()
     setViewing(true)
     CreateThread(function()
-        QB.nui.openApp('qbdispatch:tablet')
+        Kora.nui.openApp('qbdispatch:tablet')
         if Dispatch.state.data.tabletOpen then
             Dispatch.state.setTabletOpen(false)
             setViewing(false)

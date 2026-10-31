@@ -161,5 +161,5 @@ AddEventHandler('qbcore:server:playerDropped', function(src) viewers[src] = nil 
 AddEventHandler('playerDropped', function() viewers[source] = nil end)
 
 CreateThread(function()
-    QB.timers.setInterval(Dispatch.units.tick, Config.units.heartbeat)
+    Kora.timers.setInterval(Dispatch.units.tick, Config.units.heartbeat)
 end)

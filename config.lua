@@ -134,7 +134,7 @@ Config.feed = {
 -- --- keybinds ---------------------------------------------------------------
 --
 -- Defaults only. Every one of these is rebindable by the player through FiveM's
--- own key-binding settings, because QB.keybind.add registers a real key mapping.
+-- own key-binding settings, because Kora.keybind.add registers a real key mapping.
 Config.keybinds = {
     previous = 'PRIOR', -- Page Up   -- move selection towards newer calls
     next     = 'NEXT',  -- Page Down -- move selection towards older calls, into history
@@ -239,8 +239,8 @@ Config.compat = {
 Config.debug = true
 
 -- Registers this resource-owned configuration with kora_lib without changing its public Config table.
-if QB and QB.config and QB.config.adopt then
-    Config.feed.position = QB.config.enum(Config.feed.position, {
+if Kora and Kora.config and Kora.config.adopt then
+    Config.feed.position = Kora.config.enum(Config.feed.position, {
         label = 'Dispatch feed position',
         description = 'Selects where live dispatch cards appear on the screen. Left centre avoids the standard minimap, HUD, notification, and inventory surfaces; use a top position only when no other overlay occupies that area.',
         options = {
@@ -249,5 +249,5 @@ if QB and QB.config and QB.config.adopt then
             { value = 'top-center', label = 'Top centre' },
         },
     })
-    Config = QB.config.adopt(Config)
+    Config = Kora.config.adopt(Config)
 end

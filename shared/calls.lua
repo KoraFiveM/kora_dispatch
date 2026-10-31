@@ -1,5 +1,5 @@
 -- Pure, realm-agnostic call helpers. Everything here is deliberately free of
--- natives and of Core/QB lookups so the whole normalisation and expiry model can
+-- natives and of Core/Kora lookups so the whole normalisation and expiry model can
 -- be unit-tested under plain Lua -- the shape of a call is the contract every
 -- job resource writes against, so it is the part most worth testing.
 

@@ -45,7 +45,7 @@ end
 
 local function removeCallBlip(id)
     local blip = callBlips[id]
-    if blip then QB.blips.remove(blip) end
+    if blip then Kora.blips.remove(blip) end
     callBlips[id] = nil
 end
 
@@ -82,7 +82,7 @@ function Dispatch.blip.refreshCalls()
         local call = desired[id]
         if not callBlips[id] then
             local name = alertName(call)
-            local blip = QB.blips.create(call.coords, {
+            local blip = Kora.blips.create(call.coords, {
                 sprite = map.callBlipSprite or 161,
                 color = alertColor(call),
                 scale = map.callBlipScale or 0.85,
@@ -93,7 +93,7 @@ function Dispatch.blip.refreshCalls()
             })
             if blip then callBlips[id] = blip end
         else
-            QB.blips.setInfo(callBlips[id], callInfo(call))
+            Kora.blips.setInfo(callBlips[id], callInfo(call))
         end
     end
 end
@@ -105,7 +105,7 @@ end
 ---Clears the current route blip, if any.
 function Dispatch.blip.clear()
     if active then
-        QB.blips.remove(active)
+        Kora.blips.remove(active)
         active = nil
         activeCallId = nil
     end
@@ -121,7 +121,7 @@ function Dispatch.blip.route(call)
 
     local priority = Config.priorities[call.priority] or Config.priorities[Config.defaultPriority]
 
-    local blip = QB.blips.create(call.coords, {
+    local blip = Kora.blips.create(call.coords, {
         sprite = 161,
         color = call.priority == 1 and 1 or (call.priority == 2 and 47 or 4),
         scale = 0.9,
@@ -160,6 +160,6 @@ end
 -- Expiry is clock-based, so an otherwise quiet call has no server update to
 -- remove its marker. A low-frequency local sweep keeps the normal map honest
 -- without polling the server or touching the tablet.
-QB.timers.setInterval(function()
+Kora.timers.setInterval(function()
     if Dispatch.state.isActive() then Dispatch.blip.refreshCalls() end
 end, 5000)

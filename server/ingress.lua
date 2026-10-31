@@ -19,7 +19,7 @@ local function removeDefinition(key)
     for _, byType in pairs(lastRequestAt) do byType[key] = nil end
 end
 
-local ownership = QB.resources.serverRegistry(removeDefinition)
+local ownership = Kora.resources.serverRegistry(removeDefinition)
 
 ---@param value any
 ---@return table
@@ -41,7 +41,7 @@ local function normaliseDefinition(definition)
     if not payload then return nil, err end
 
     local cooldown = tonumber(definition.cooldown) or Config.ingress.defaultCooldown
-    if not QB.util.isFiniteNumber(cooldown) then return nil, 'cooldown must be a finite number' end
+    if not Kora.util.isFiniteNumber(cooldown) then return nil, 'cooldown must be a finite number' end
     cooldown = math.floor(cooldown)
     if cooldown < Config.ingress.minimumCooldown then
         return nil, ('cooldown must be at least %dms'):format(Config.ingress.minimumCooldown)
@@ -132,7 +132,7 @@ end
 ---@return integer|nil remainingCooldownMs
 function Dispatch.ingress.create(src, key)
     src = tonumber(src)
-    if not QB.util.isFiniteNumber(src) or src <= 0 or type(key) ~= 'string' then
+    if not Kora.util.isFiniteNumber(src) or src <= 0 or type(key) ~= 'string' then
         return false, 'invalid player alert request'
     end
     src = math.floor(src)

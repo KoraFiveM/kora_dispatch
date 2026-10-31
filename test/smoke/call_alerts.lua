@@ -6,8 +6,8 @@ local mocks = dofile('test/mocks.lua'); mocks.install()
 dofile('config.lua')
 
 local notices, refreshes, sounds = {}, 0, 0
-QB.notify = { send = function(payload) notices[#notices + 1] = payload end }
-QB.sound = { playFrontend = function() sounds = sounds + 1 end }
+Kora.notify = { send = function(payload) notices[#notices + 1] = payload end }
+Kora.sound = { playFrontend = function() sounds = sounds + 1 end }
 
 dofile('client/state.lua')
 Dispatch.ui = { render = function() end, setTablet = function() end }

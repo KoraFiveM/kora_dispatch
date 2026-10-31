@@ -16,7 +16,7 @@ end
 -- Initial hydrate: everything the client needs to render, in one round trip, so
 -- a player coming on duty (or reconnecting mid-shift) sees the existing call
 -- backlog instead of an empty feed until the next incident.
-QB.callback.register('qbdispatch:hydrate', function(src)
+Kora.callback.register('qbdispatch:hydrate', function(src)
     local service, unit = serviceOf(src)
     if not service then return nil end
 
@@ -55,7 +55,7 @@ end, { rateLimit = { max = 5, window = 5000 } })
 
 -- Attach/advance/detach. `state` is optional: omitted, it advances one step,
 -- which is what the single respond keybind sends.
-QB.callback.register('qbdispatch:respond', function(src, callId, state)
+Kora.callback.register('qbdispatch:respond', function(src, callId, state)
     local service = serviceOf(src)
     if not service then return false, 'not on duty' end
 
@@ -65,7 +65,7 @@ end, { rateLimit = { max = 20, window = 5000 } })
 -- Tablet open/close. This is what gates the unit heartbeat, so it is the one
 -- callback a client is expected to send often; the rate limit is sized for a
 -- player toggling the view rather than for a script hammering it.
-QB.callback.register('qbdispatch:setViewing', function(src, viewing)
+Kora.callback.register('qbdispatch:setViewing', function(src, viewing)
     local service = serviceOf(src)
     if not service then
         Dispatch.units.setViewer(src, nil)
@@ -85,7 +85,7 @@ QB.callback.register('qbdispatch:setViewing', function(src, viewing)
 end, { rateLimit = { max = 30, window = 10000 } })
 
 -- Full call list for the history view, including expired and closed calls.
-QB.callback.register('qbdispatch:getCalls', function(src, filter)
+Kora.callback.register('qbdispatch:getCalls', function(src, filter)
     local service, unit = serviceOf(src)
     if not service then return {} end
 
