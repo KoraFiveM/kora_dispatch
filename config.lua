@@ -37,7 +37,7 @@ Config.services = {
 -- produces a working (if unbranded) dispatch rather than erroring.
 Config.defaultService = {
     label = 'Dispatch',
-    accent = '#DC143C',
+    accent = '#95FF00',
     sound = { name = 'Lose_1st', set = 'GTAO_FM_Events_Soundset' },
 }
 
