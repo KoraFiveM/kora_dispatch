@@ -119,8 +119,6 @@ function Dispatch.blip.route(call)
 
     if not call or not call.coords then return false end
 
-    local priority = Config.priorities[call.priority] or Config.priorities[Config.defaultPriority]
-
     local blip = Kora.blips.create(call.coords, {
         sprite = 161,
         color = call.priority == 1 and 1 or (call.priority == 2 and 47 or 4),

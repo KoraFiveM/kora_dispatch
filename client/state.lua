@@ -140,14 +140,11 @@ end
 function Dispatch.state.moveSelection(delta)
     if #S.order == 0 then return nil end
 
-    if not S.selected then
-        S.selected = S.order[1]
-        return S.calls[S.selected]
-    end
-
     local index
-    for i, id in ipairs(S.order) do
-        if id == S.selected then index = i break end
+    if S.selected then
+        for i, id in ipairs(S.order) do
+            if id == S.selected then index = i break end
+        end
     end
     if not index then
         S.selected = S.order[1]

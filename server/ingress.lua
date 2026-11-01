@@ -69,7 +69,7 @@ local function normaliseDefinition(definition)
     end
     if type(payload.sound) == 'table' then
         payload.sound = { name = payload.sound.name, set = payload.sound.set }
-    elseif payload.sound ~= nil then
+    else
         payload.sound = nil
     end
 
@@ -121,8 +121,7 @@ end
 local function coordsOfSource(src)
     local ped = GetPlayerPed(src)
     if not ped or ped == 0 or not DoesEntityExist(ped) then return nil end
-    local coords = GetEntityCoords(ped)
-    return Dispatch.calls.toCoords(coords)
+    return Dispatch.calls.toCoords(GetEntityCoords(ped))
 end
 
 ---@param src integer
