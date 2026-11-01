@@ -75,6 +75,8 @@ export interface MapConfig {
     grid?: { x: number; y: number }
     calibration: { a: CalibrationPoint; b: CalibrationPoint }
     fadeHoldFraction: number
+    /** Wheel zooms the map and is kept from scrolling the page. Defaults to true. */
+    captureWheel?: boolean
 }
 
 export interface ServiceConfig {

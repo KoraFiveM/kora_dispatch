@@ -124,6 +124,13 @@ it here.
 
 `/dispatchcoords` reads nothing and changes nothing; it exists only for this.
 
+## Wheel zoom
+
+The mouse wheel zooms the map and is consumed there, so the surrounding tablet
+or page does not scroll at the same time. `Config.map.captureWheel` (default
+`true`) controls this; set it to `false` to let the wheel pass through to the
+page and zoom with the buttons only.
+
 ## Fade
 
 Each marker's opacity comes from how much of its call's life remains, holding

@@ -71,6 +71,7 @@ local function mapBlock(S, calls)
             tileSize = map.tileSize, grid = map.grid, calibration = map.calibration,
         },
         minZoom = map.minZoom, maxZoom = map.maxZoom, initialZoom = 0.5,
+        captureWheel = map.captureWheel ~= false,
         markers = markers, selectedId = S.selected and tostring(S.selected) or nil,
         recenter = S.unit and S.unit.coords or nil, follow = true,
         now = Dispatch.state.now(),

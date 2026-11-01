@@ -118,9 +118,27 @@ export function MapView({ map, config, calls, units, me, now, selected, onSelect
         }
     }, [scale])
 
-    function zoomBy(factor: number) {
+    const zoomBy = useCallback((factor: number) => {
         setScale((current) => Math.min(4, Math.max(0.12, current * factor)))
-    }
+    }, [])
+
+    // A native, non-passive listener: React attaches wheel handlers as passive,
+    // so preventDefault() inside onWheel is ignored and the page scrolls while
+    // the map zooms.
+    const captureWheel = map.captureWheel !== false
+    useEffect(() => {
+        const element = containerRef.current
+        if (!element || !captureWheel) return
+
+        function onWheel(event: WheelEvent) {
+            event.preventDefault()
+            event.stopPropagation()
+            zoomBy(event.deltaY < 0 ? 1.15 : 1 / 1.15)
+        }
+
+        element.addEventListener("wheel", onWheel, { passive: false })
+        return () => element.removeEventListener("wheel", onWheel)
+    }, [captureWheel, zoomBy])
 
     // Only live calls are drawn. An expired call has left the map by definition
     // -- that is what the fade is counting down to -- but it is still readable
@@ -131,8 +149,7 @@ export function MapView({ map, config, calls, units, me, now, selected, onSelect
         <div
             ref={containerRef}
             onPointerDown={onPointerDown}
-            onWheel={(event) => zoomBy(event.deltaY < 0 ? 1.15 : 1 / 1.15)}
-            className="relative h-full w-full cursor-grab select-none overflow-hidden bg-background active:cursor-grabbing"
+            className="relative h-full w-full cursor-grab select-none overflow-hidden overscroll-contain bg-background active:cursor-grabbing"
             role="application"
             aria-label="Dispatch map"
         >

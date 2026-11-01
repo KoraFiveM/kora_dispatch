@@ -207,6 +207,12 @@ Config.map = {
     -- out over the remainder. Fading from the very first second reads as "the UI
     -- is broken" rather than "this call is going stale".
     fadeHoldFraction = 0.6,
+
+    -- Wheel over the map zooms the map and nothing else: the event is consumed
+    -- so the surrounding tablet/page does not scroll at the same time. Set to
+    -- false to let the wheel pass through to the page (the map then ignores it
+    -- for zoom; use the zoom buttons).
+    captureWheel = true,
 }
 
 -- --- immediate call alert ---------------------------------------------------
