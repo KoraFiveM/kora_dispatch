@@ -70,7 +70,6 @@ local function reorder()
     local limit = Config.history.max
     if #order > limit then
         local now = Dispatch.state.now()
-        -- Walk oldest-first, dropping dead calls until back within budget.
         for index = #order, 1, -1 do
             if #order <= limit then break end
             local id = order[index]

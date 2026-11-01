@@ -63,8 +63,6 @@ function M.install()
     -- and defining it here would let a regression back to it pass the tests and
     -- then throw on every heartbeat in game.
 
-    -- --- the kora_core/kora_lib surfaces kora_dispatch actually calls ---
-    --
     -- Registry contents mirror kora_core/shared/jobs.lua, because the single-service
     -- rule is enforced against real job->type relationships and a mock with a
     -- different shape would test nothing.

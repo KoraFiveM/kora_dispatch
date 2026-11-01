@@ -77,8 +77,6 @@ h.test('coords are coerced to a plain table', function()
     h.assertEqual(Dispatch.calls.toCoords('nope'), nil, 'a non-table is nil')
 end)
 
--- --- expiry and fade --------------------------------------------------------
-
 local function callAt(created, ttl)
     return { createdAt = created, expiresAt = created + ttl }
 end
@@ -123,8 +121,6 @@ h.test('remainingFraction is clamped to 0..1', function()
     h.assertEqual(Dispatch.calls.remainingFraction({ createdAt = 0, expiresAt = 0 }, 0), 0.0,
         'a zero-length call does not divide by zero')
 end)
-
--- --- unit state machine -----------------------------------------------------
 
 h.test('respond walks unattached -> en route -> on scene -> clear', function()
     h.assertEqual(Dispatch.calls.nextState(nil), 'en_route', 'the first press attaches you')

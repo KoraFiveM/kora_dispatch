@@ -89,8 +89,6 @@ RegisterNetEvent('qbdispatch:client:units', function(units)
     if Dispatch.state.data.tabletOpen then Dispatch.ui.render() end
 end)
 
--- --- lifecycle --------------------------------------------------------------
-
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function() Dispatch.hydrate() end)
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function() Dispatch.hydrate() end)
 RegisterNetEvent('QBCore:Client:SetDuty', function() Dispatch.hydrate() end)
