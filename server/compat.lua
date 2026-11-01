@@ -34,13 +34,11 @@ if Config.compat.legacyInbound then
     end
 
     RegisterNetEvent('police:server:policeAlert', function()
-        local src = source
-        Dispatch.ingress.create(src, 'qbdispatch:compat:police')
+        Dispatch.ingress.create(source, 'qbdispatch:compat:police')
     end)
 
     RegisterNetEvent('hospital:server:ambulanceAlert', function()
-        local src = source
-        Dispatch.ingress.create(src, 'qbdispatch:compat:ambulance')
+        Dispatch.ingress.create(source, 'qbdispatch:compat:ambulance')
     end)
 
     RegisterNetEvent('hospital:server:SendDoctorAlert', function()

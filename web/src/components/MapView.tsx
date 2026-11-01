@@ -309,11 +309,6 @@ function TileGrid({
                         top: Math.round((y * tileSpan - top) * scale),
                         width: Math.ceil(screenSpan) + 1,
                         height: Math.ceil(screenSpan) + 1,
-                        // No colour correction. The shipped basemap is the
-                        // in-game pause map, which is already a dark charcoal
-                        // render that markers read cleanly against; a
-                        // brightness/saturation filter only crushes the road
-                        // network into the landmass.
                     }}
                 />,
             )
