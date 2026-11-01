@@ -28,7 +28,7 @@ export function devState(): DispatchState {
         },
         config: {
             label: "Police",
-            accent: "#3B82F6",
+            accent: "#95FF00",
             priorities: {
                 "1": { label: "Critical", ttl: 600000, color: "#F04444" },
                 "2": { label: "High", ttl: 300000, color: "#F59E0B" },

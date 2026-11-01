@@ -35,9 +35,16 @@ Config.services = {
 
 -- Fallback for a service with no entry above, so an unconfigured job type still
 -- produces a working (if unbranded) dispatch rather than erroring.
+--
+-- `accent` defaults to nil, which means "use kora_theme": the shell and feed
+-- follow the server primary from kora_theme/theme.json and each player's own
+-- /theme choice. Set a '#RRGGBB' string to pin an accent for services that
+-- have no entry above (this overrides the player's /theme colour). The same
+-- applies to an `accent` on any Config.services entry; leave it out to follow
+-- kora_theme.
 Config.defaultService = {
     label = 'Dispatch',
-    accent = '#95FF00',
+    accent = nil,
     sound = { name = 'Lose_1st', set = 'GTAO_FM_Events_Soundset' },
 }
 

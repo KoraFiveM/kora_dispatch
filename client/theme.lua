@@ -18,6 +18,14 @@ local function isHex(hex)
     return type(hex) == 'string' and hex:match('^#%x%x%x%x%x%x$') ~= nil
 end
 
+---The player's /theme colour, or nil to use the kora_theme server default.
+---@return string|nil
+local function playerColour()
+    if GetResourceState('kora_theme') ~= 'started' then return nil end
+    local ok, colour = pcall(function() return exports.kora_theme:getPlayerTheme() end)
+    return ok and isHex(colour) and colour or nil
+end
+
 ---Applies an accent colour to the dispatch UI.
 ---
 ---kora_lib validates and applies the accent in the shared AppShell's own frame;
@@ -34,9 +42,11 @@ function Dispatch.theme.set(hex)
         hex = (S.config and S.config.accent) or Config.defaultService.accent
     end
 
+    -- A nil accent here means "follow kora_theme": the AppShell then keeps the
+    -- player's /theme colour, and the feed tokens are derived from it below.
     current = hex
 
-    local ok, tokens = pcall(function() return Kora.theme.tokens(hex) end)
+    local ok, tokens = pcall(function() return Kora.theme.tokens(hex or playerColour()) end)
     if not ok or type(tokens) ~= 'table' then
         return false, 'failed to derive theme tokens'
     end
@@ -61,3 +71,9 @@ end
 function Dispatch.theme.refresh()
     Dispatch.theme.set(current)
 end
+
+-- A /theme change must reach the feed tokens too (the AppShell follows it on
+-- its own). Only matters while no explicit accent is pinned.
+AddEventHandler('qbtheme:playerThemeChanged', function()
+    if current == nil then Dispatch.theme.refresh() end
+end)

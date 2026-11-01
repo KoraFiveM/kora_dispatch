@@ -15,6 +15,7 @@ _G.Kora = {
         setDispatchFeed = function(payload) feeds[#feeds + 1] = payload; return true end,
     },
     theme = { tokens = function(hex)
+        hex = hex or '#95FF00'
         return { primary = hex, ['brand-soft'] = 'soft:' .. hex, ['brand-border'] = 'border:' .. hex, background = 'unscoped' }
     end },
     callback = { trigger = function() return true end },
