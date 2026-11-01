@@ -74,4 +74,29 @@ h.test('callback names and throttles retain their public contract', function()
     h.assertEqual(options['qbdispatch:setViewing'].rateLimit.max, 30, 'viewing limit')
 end)
 
+h.test('civilians are refused every data callback even when on duty', function()
+    net.setPlayer(5, 'unemployed', true)
+    h.assertEqual(callbacks['qbdispatch:hydrate'](5), nil, 'civilian hydrate')
+    ids(callbacks['qbdispatch:getCalls'](5), {})
+    Dispatch.units = { setViewer = function() end, tick = function() end }
+    h.assertEqual(callbacks['qbdispatch:setViewing'](5, true), false, 'civilian viewing')
+    h.assertEqual(callbacks['qbdispatch:respond'](5, leo), false, 'civilian respond')
+    h.assertEqual(Dispatch.api.setUnitState(5, leo), false, 'civilian api response')
+end)
+
+h.test('Config.access narrows types, adds job names and can waive on-duty', function()
+    net.setPlayer(1, 'police', true)
+    net.setPlayer(4, 'police', false)
+    Config.access = { jobTypes = { 'ems' } }
+    h.assertEqual(callbacks['qbdispatch:hydrate'](1), nil, 'leo outside narrowed types')
+    Config.access = { jobTypes = { 'ems' }, jobs = { 'police' } }
+    h.assertTrue(callbacks['qbdispatch:hydrate'](1) ~= nil, 'job name allowed')
+    Config.access = { requireOnDuty = false }
+    h.assertTrue(callbacks['qbdispatch:hydrate'](4) ~= nil, 'off-duty allowed job may read')
+    h.assertEqual(callbacks['qbdispatch:respond'](4, leo), false, 'off-duty still cannot respond')
+    net.setPlayer(5, 'unemployed', false)
+    h.assertEqual(callbacks['qbdispatch:hydrate'](5), nil, 'civilian still refused')
+    Config.access = { jobs = {}, requireOnDuty = true }
+end)
+
 h.report('callbacks')

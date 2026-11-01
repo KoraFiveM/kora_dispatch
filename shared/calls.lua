@@ -5,6 +5,27 @@
 
 Dispatch = Dispatch or {}
 Dispatch.calls = {}
+Dispatch.access = {}
+
+---Whether a job may use dispatch under Config.access. Pure (config only), so the
+---server callbacks and the client's "should I say something" check agree.
+---@param jobName string|nil
+---@param jobType string|nil
+---@return boolean
+function Dispatch.access.allowed(jobName, jobType)
+    local access = Config.access or {}
+    for _, name in ipairs(access.jobs or {}) do
+        if name == jobName then return true end
+    end
+    if not jobType then return false end
+    if type(access.jobTypes) == 'table' and #access.jobTypes > 0 then
+        for _, allowed in ipairs(access.jobTypes) do
+            if allowed == jobType then return true end
+        end
+        return false
+    end
+    return Config.services[jobType] ~= nil
+end
 
 ---Cross-resource callables arrive as a table with a `__call` metamethod, not a
 ---function. Every registration API in this stack needs this; a bare

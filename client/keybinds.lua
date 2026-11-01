@@ -117,6 +117,7 @@ local function warnIfOffDuty()
     local job = exports.kora_core:getPlayerData({ 'job' })
     local jobType = job and job.type
     if not jobType or jobType == 'none' or jobType == 'civ' then return end
+    if not Dispatch.access.allowed(job.name, jobType) then return end
     if job.onduty then return end
 
     Kora.notify.send({

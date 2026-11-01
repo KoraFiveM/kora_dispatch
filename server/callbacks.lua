@@ -4,12 +4,13 @@
 
 Dispatch = Dispatch or {}
 
----The service a source is entitled to see, or nil when they are not on duty.
+---The service a source is entitled to see, or nil when their job is not allowed
+---by Config.access (or they are off duty and that is required).
 ---@param src integer
 ---@return string|nil service, table|nil unit
 local function serviceOf(src)
-    local unit = Dispatch.recipients.unitOf(src)
-    if not unit or not unit.onDuty then return nil end
+    local unit = Dispatch.recipients.accessUnit(src)
+    if not unit then return nil end
     return unit.jobType, unit
 end
 
@@ -56,8 +57,8 @@ end, { rateLimit = { max = 5, window = 5000 } })
 -- Attach/advance/detach. `state` is optional: omitted, it advances one step,
 -- which is what the single respond keybind sends.
 Kora.callback.register('qbdispatch:respond', function(src, callId, state)
-    local service = serviceOf(src)
-    if not service then return false, 'not on duty' end
+    local service, unit = serviceOf(src)
+    if not service or not unit.onDuty then return false, 'not on duty' end
 
     return Dispatch.api.setUnitState(src, callId, state)
 end, { rateLimit = { max = 20, window = 5000 } })

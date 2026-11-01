@@ -166,6 +166,7 @@ function Dispatch.api.setUnitState(src, id, state)
 
     local unit = Dispatch.recipients.unitOf(src)
     if not unit then return false, 'not on duty' end
+    if not Dispatch.access.allowed(unit.job, unit.jobType) then return false, 'dispatch is not available to your job' end
     if unit.jobType ~= call.service then return false, 'wrong service for this call' end
 
     -- Service alone is not enough. A call raised against `jobs = {'police'}`

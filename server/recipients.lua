@@ -111,6 +111,23 @@ function Dispatch.recipients.sources(service, jobs)
     return out
 end
 
+---The record dispatch may serve to one source under Config.access, or nil.
+---An allowed job is always required; on duty is required unless
+---Config.access.requireOnDuty is false, in which case an off-duty member of an
+---allowed job gets a record built from their job instead of a roster entry.
+---@param src integer
+---@return table|nil
+function Dispatch.recipients.accessUnit(src)
+    local job = exports.kora_core:getJob(src)
+    if not job or not Dispatch.access.allowed(job.name, job.type) then return nil end
+
+    local unit = Dispatch.recipients.unitOf(src)
+    if unit then return unit end
+    if (Config.access or {}).requireOnDuty ~= false then return nil end
+
+    return { src = src, job = job.name, jobLabel = job.label, jobType = job.type or 'none', onDuty = false }
+end
+
 ---The roster record for one source, or nil when they are not on duty anywhere.
 ---@param src integer
 ---@return table|nil

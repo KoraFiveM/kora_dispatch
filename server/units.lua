@@ -137,7 +137,9 @@ function Dispatch.units.tick()
     local watchersByService = {}
     for src, service in pairs(viewers) do
         local job = exports.kora_core:getJob(src)
-        if not job or not job.onduty or (job.type or 'none') ~= service then
+        if not job or (job.type or 'none') ~= service
+            or not Dispatch.access.allowed(job.name, job.type)
+            or (not job.onduty and (Config.access or {}).requireOnDuty ~= false) then
             viewers[src] = nil
         else
             watchersByService[service] = watchersByService[service] or {}

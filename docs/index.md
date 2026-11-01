@@ -213,6 +213,26 @@ restores the configured kora_theme palette when the tablet closes.
 
 ---
 
+## Access
+
+Only allowed jobs can use dispatch -- the feed, the tablet, and the
+`hydrate`/`getCalls`/`respond`/`setViewing` callbacks. Civilians get nothing. The
+check runs on the **server** for every callback and response, so it cannot be
+bypassed from the client.
+
+```lua
+Config.access = {
+    jobs = {},            -- extra job NAMES, e.g. { 'mechanic' }
+    jobTypes = nil,       -- nil = every Config.services key (leo, ems, recovery); or { 'leo', 'ems' }
+    requireOnDuty = true, -- false: off-duty members of an allowed job may open the tablet
+}
+```
+
+Adding an entry to `Config.services` therefore opens dispatch to that job type.
+Calls and responses still only reach on-duty units regardless of `requireOnDuty`.
+
+---
+
 ## Player controls
 
 All rebindable through FiveM's own key-binding settings.

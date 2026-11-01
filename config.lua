@@ -240,6 +240,30 @@ Config.compat = {
     coreAlerts = true,
 }
 
+-- --- access ----------------------------------------------------------------
+--
+-- Who may use dispatch at all: the feed, the tablet, hydrate/history/respond
+-- callbacks and the unit map. Enforced on the SERVER for every callback, so a
+-- modified client cannot read calls or units by skipping the UI check; the
+-- client uses the same rule only to decide whether to show anything.
+--
+--   jobs          job NAMES allowed in addition to the types below, e.g. { 'mechanic' }
+--   jobTypes      job TYPES allowed. nil (default) = every key of Config.services
+--                 (leo, ems, recovery), so adding a service opens dispatch to it.
+--                 Set a list such as { 'leo', 'ems' } to narrow it.
+--   requireOnDuty true (default): the player must also be on duty. false lets an
+--                 off-duty member of an allowed job open the tablet and read
+--                 history; calls are still delivered, and responses still
+--                 accepted, only for on-duty units.
+--
+-- Players outside this set (civilians, unemployed) get no feed, no tablet and
+-- empty callback results.
+Config.access = {
+    jobs = {},
+    jobTypes = nil,
+    requireOnDuty = true,
+}
+
 -- Development commands (/dispatchtest, /dispatchclear, /dispatchstatus) are
 -- registered only while this is on, and are admin-gated even then. Turn it on to
 -- exercise dispatch without needing a second player or an actual crime.
