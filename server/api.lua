@@ -230,8 +230,6 @@ function Dispatch.api.getOnDutyUnits(filter)
     return exports.kora_core:getOnDutyRoster({ job = filter.job, jobType = filter.service })
 end
 
--- --- exports ---------------------------------------------------------------
-
 exports('createCall', Dispatch.api.createCall)
 exports('updateCall', Dispatch.api.updateCall)
 exports('closeCall', Dispatch.api.closeCall)
@@ -239,8 +237,6 @@ exports('getCall', Dispatch.api.getCall)
 exports('getCalls', Dispatch.api.getCalls)
 exports('setUnitState', Dispatch.api.setUnitState)
 exports('getOnDutyUnits', Dispatch.api.getOnDutyUnits)
-
--- --- lifecycle -------------------------------------------------------------
 
 -- A unit that dropped or went off duty cannot still be en route. Both paths
 -- detach them and re-push the affected calls so everyone else's unit list stops

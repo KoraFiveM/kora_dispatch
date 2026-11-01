@@ -311,11 +311,9 @@ function TileGrid({
                         height: Math.ceil(screenSpan) + 1,
                         // No colour correction. The shipped basemap is the
                         // in-game pause map, which is already a dark charcoal
-                        // render that markers read cleanly against. The heavy
-                        // brightness/saturation filter this used to carry was
-                        // there to tame the bright stylised atlas; applied to
-                        // this basemap it only crushes the road network into
-                        // the landmass.
+                        // render that markers read cleanly against; a
+                        // brightness/saturation filter only crushes the road
+                        // network into the landmass.
                     }}
                 />,
             )

@@ -27,8 +27,6 @@ local function equalList(actual, expected, message)
     for i = 1, #expected do h.assertEqual(actual[i], expected[i], message .. (' [%d]'):format(i)) end
 end
 
--- --- recipient resolution ---------------------------------------------------
-
 h.test('a job type reaches every job carrying it', function()
     net.clearEvents()
     local id, count = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'Robbery', priority = 1 })
@@ -92,8 +90,6 @@ h.test('a call with nobody on duty still records, and reports zero recipients', 
     h.assertEqual(count, 0, 'and the caller can tell nobody heard it')
 end)
 
--- --- the wire shape ---------------------------------------------------------
-
 h.test('the wire form exposes what a UI needs and nothing internal', function()
     local id = Dispatch.api.createCall({
         jobTypes = { 'leo' }, code = '10-90', title = 'Bank Robbery',
@@ -110,8 +106,6 @@ h.test('the wire form exposes what a UI needs and nothing internal', function()
     h.assertEqual(wire.jobs, nil, 'the resolved job list is server bookkeeping, not UI data')
     h.assertEqual(wire.onAccept, nil, 'the accept hook is an event name a client must not see')
 end)
-
--- --- unit state -------------------------------------------------------------
 
 -- Config.dispatch.maxActiveCalls caps how many live calls one unit may be
 -- committed to (shipped default: 1), so attachments LEAK between tests in this
@@ -203,8 +197,6 @@ h.test('going off duty detaches a unit from every call', function()
 
     net.setPlayer(1, 'police', true, { name = 'Jane Doe', callsign = '1-ADAM-12' })
 end)
-
--- --- update and close -------------------------------------------------------
 
 h.test('update revises an open call and re-pushes it', function()
     local id = Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'Pursuit', priority = 2 })
@@ -337,8 +329,6 @@ h.test('operations on an unknown call fail cleanly', function()
     h.assertFalse(Dispatch.api.closeCall(999999), 'close')
     h.assertFalse(Dispatch.api.setUnitState(1, 999999), 'respond')
 end)
-
--- --- expiry and retention ---------------------------------------------------
 
 h.test('a call drops off the live list at its expiry but stays readable', function()
     Dispatch.store._reset()
