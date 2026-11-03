@@ -86,7 +86,7 @@ RegisterNetEvent('qbdispatch:client:units', function(units)
     Dispatch.state.setUnits(units)
     -- Only the tablet draws colleague markers, so a heartbeat arriving with the
     -- tablet closed is stored and not re-rendered.
-    if Dispatch.state.data.tabletOpen then Dispatch.ui.render() end
+    if Dispatch.state.data.tabletOpen then Dispatch.ui.renderUnits() end
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function() Dispatch.hydrate() end)

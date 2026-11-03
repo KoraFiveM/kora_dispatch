@@ -5,11 +5,12 @@ local mocks = dofile('test/mocks.lua'); local mock = mocks.install()
 local resource = arg[1] or '.'
 dofile(resource .. '/config.lua')
 
-local focusCalls, opened, closed, definitions, feeds = {}, 0, 0, {}, {}
+local focusCalls, opened, closed, definitions, feeds, updates = {}, 0, 0, {}, {}, {}
 function _G.SetNuiFocus(mouse, keyboard) focusCalls[#focusCalls + 1] = { mouse, keyboard } end
 _G.Kora = {
     nui = {
         registerApp = function(definition) definitions[#definitions + 1] = definition end,
+        updateApp = function(id, update) updates[#updates + 1] = { id = id, update = update }; return true end,
         openApp = function() opened = opened + 1 end,
         closeApp = function() closed = closed + 1 end,
         setDispatchFeed = function(payload) feeds[#feeds + 1] = payload; return true end,
@@ -81,6 +82,49 @@ h.test('the AppShell payload includes live map tiles, call and unit markers, and
     h.assertTrue(calls.searchable, 'the active queue is searchable')
     h.assertTrue(calls.pageSize > 0, 'the active queue is paged')
     h.assertEqual(calls.layout, 'cards', 'the active queue uses cards')
+end)
+
+h.test('a units heartbeat patches only the map and units views, and skips unchanged units (F#445)', function()
+    -- The tablet is still registered open from the previous test.
+    Dispatch.state.setTabletOpen(false)
+    Dispatch.ui.setTablet(true)
+    -- The mock shell resolves at once, so reopen the state and do the full render
+    -- an open tablet would have had.
+    Dispatch.state.setTabletOpen(true)
+    Dispatch.state.setUnits({ { src = 9, callsign = '2-ADAM-9', name = 'Officer Diaz',
+        coords = { x = 220.0, y = -805.0, z = 30.0 }, heading = 92.0 } })
+    Dispatch.ui.render()
+    local registered, before = #definitions, definitions[#definitions].navigation
+    local unit = { src = 9, callsign = '2-ADAM-9', name = 'Officer Diaz',
+        coords = { x = 220.0, y = -805.0, z = 30.0 }, heading = 92.0 }
+
+    Dispatch.state.setUnits({ unit })
+    Dispatch.ui.renderUnits()
+    h.assertEqual(#updates, 0, 'an unchanged units snapshot sends nothing')
+
+    Dispatch.state.setUnits({ { src = 9, callsign = '2-ADAM-9', name = 'Officer Diaz',
+        coords = { x = 260.0, y = -805.0, z = 30.0 }, heading = 92.0 } })
+    Dispatch.ui.renderUnits()
+    h.assertEqual(#definitions, registered, 'the heartbeat does not re-register the whole app')
+    h.assertEqual(#updates, 1, 'a moved unit sends one partial update')
+    h.assertEqual(updates[1].id, 'qbdispatch:tablet')
+    local views = {}
+    for _, view in ipairs(updates[1].update.navigation) do views[view.id] = view end
+    local beforeViews = {}
+    for _, view in ipairs(before) do beforeViews[view.id] = view end
+    h.assertTrue(views.queue == beforeViews.queue, 'call lists are reused, not rebuilt')
+    h.assertTrue(views.history == beforeViews.history, 'history is reused, not rebuilt')
+    local unitMarker
+    for _, marker in ipairs(views.map.content.blocks[1].markers) do
+        if marker.id == 'unit:9' then unitMarker = marker end
+    end
+    h.assertEqual(unitMarker.x, 260.0, 'the map block carries the new unit position')
+    h.assertTrue(views.map.content.blocks[2] == beforeViews.map.content.blocks[2], 'the map call list is reused')
+
+    Dispatch.state.setUnits({ { src = 9, callsign = '2-ADAM-9', name = 'Officer Diaz',
+        coords = { x = 260.2, y = -805.1, z = 31.0 }, heading = 91.0 } })
+    Dispatch.ui.renderUnits()
+    h.assertEqual(#updates, 1, 'sub-metre jitter does not resend the tablet')
 end)
 
 h.test('history details never offer a response action for an ended call', function()

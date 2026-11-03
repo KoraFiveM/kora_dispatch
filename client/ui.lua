@@ -5,6 +5,28 @@
 Dispatch = Dispatch or {}
 Dispatch.ui = {}
 
+-- Navigation from the last full tablet render and a fingerprint of the units it
+-- drew, so a units heartbeat can patch just the map/units views (F#445).
+local lastNavigation, lastUnitsKey
+
+local function round(value, step)
+    value = tonumber(value) or 0
+    return math.floor(value / step + 0.5)
+end
+
+---Fingerprint of everything the tablet draws for units: identity, labels and a
+---position rounded to 1 m and heading to 5 degrees.
+local function unitsKey(units)
+    local parts = {}
+    for i, unit in ipairs(units or {}) do
+        local coords = unit.coords
+        parts[i] = ('%s;%s;%s;%s;%s;%d;%d;%d'):format(tostring(unit.src), unit.callsign or '', unit.name or '',
+            unit.gradeLabel or '', unit.plate or '', coords and round(coords.x, 1) or 0,
+            coords and round(coords.y, 1) or 0, round(unit.heading, 5))
+    end
+    return table.concat(parts, '|')
+end
+
 local function callTitle(call)
     return (call.code and (call.code .. ' · ') or '') .. (call.title or 'Dispatch call')
 end
@@ -118,6 +140,17 @@ local function selectedContent(S)
     }
 end
 
+local function unitsView(S)
+    local units = {}
+    for _, unit in ipairs(S.units) do units[#units + 1] = {
+        id = tostring(unit.src), label = (unit.callsign and unit.callsign .. ' · ' or '') .. (unit.name or ('Unit ' .. unit.src)),
+        description = unit.gradeLabel or 'On duty', icon = 'users', tone = unit.src == (S.unit and S.unit.src) and 'primary' or 'neutral',
+    } end
+    return { id = 'units', label = 'Units', icon = 'users', badge = #S.units,
+        content = { title = 'On-duty units', blocks = { { type = 'list', id = 'units', searchable = true,
+            layout = 'cards', pageSize = 9, items = units, empty = 'No unit updates yet.' } } } }
+end
+
 local function appDefinition()
     local S = Dispatch.state.data
     local active = Dispatch.state.live()
@@ -139,16 +172,7 @@ local function appDefinition()
                 content = { title = 'Call history', blocks = { { type = 'list', id = 'call-history', searchable = true,
                     pageSize = 10, items = callItems(Dispatch.state.all(), S.selected), empty = 'No calls in this shift.' } } } },
             { id = 'detail', label = 'Selected call', icon = 'map-pin', content = selectedContent(S) },
-            { id = 'units', label = 'Units', icon = 'users', badge = #S.units,
-                content = { title = 'On-duty units', blocks = { { type = 'list', id = 'units', searchable = true,
-                    layout = 'cards', pageSize = 9, items = (function()
-                    local units = {}
-                    for _, unit in ipairs(S.units) do units[#units + 1] = {
-                        id = tostring(unit.src), label = (unit.callsign and unit.callsign .. ' · ' or '') .. (unit.name or ('Unit ' .. unit.src)),
-                        description = unit.gradeLabel or 'On duty', icon = 'users', tone = unit.src == (S.unit and S.unit.src) and 'primary' or 'neutral',
-                    } end
-                    return units
-                end)(), empty = 'No unit updates yet.' } } } },
+            unitsView(S),
         },
         footer = 'Routes and call responses are verified by dispatch.',
         onAction = function(actionId, context)
@@ -187,7 +211,48 @@ function Dispatch.ui.render()
             keybinds = Config.keybinds, theme = Dispatch.theme.tokens(),
         })
     end
-    if S.tabletOpen then Kora.nui.registerApp(appDefinition()) end
+    if S.tabletOpen then
+        local definition = appDefinition()
+        lastNavigation, lastUnitsKey = definition.navigation, unitsKey(S.units)
+        Kora.nui.registerApp(definition)
+    else
+        lastNavigation, lastUnitsKey = nil, nil
+    end
+end
+
+---Units heartbeat path (every few seconds while the tablet is open). Rebuilds only
+---the map block and the units view, reuses the call lists from the last full
+---render, and sends nothing when no unit moved or changed (F#445).
+function Dispatch.ui.renderUnits()
+    local S = Dispatch.state.data
+    if not S.tabletOpen then return end
+    if not lastNavigation then return Dispatch.ui.render() end
+    local key = unitsKey(S.units)
+    if key == lastUnitsKey then return end
+    lastUnitsKey = key
+
+    local navigation = {}
+    for index, view in ipairs(lastNavigation) do
+        if view.id == 'map' then
+            local blocks = {}
+            for i, block in ipairs(view.content.blocks) do
+                blocks[i] = block.type == 'map' and mapBlock(S, Dispatch.state.live()) or block
+            end
+            local content = {}
+            for k, v in pairs(view.content) do content[k] = v end
+            content.blocks = blocks
+            local copy = {}
+            for k, v in pairs(view) do copy[k] = v end
+            copy.content = content
+            navigation[index] = copy
+        elseif view.id == 'units' then
+            navigation[index] = unitsView(S)
+        else
+            navigation[index] = view
+        end
+    end
+    lastNavigation = navigation
+    Kora.nui.updateApp('qbdispatch:tablet', { navigation = navigation })
 end
 
 local function setViewing(open)
