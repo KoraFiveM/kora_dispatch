@@ -78,4 +78,18 @@ h.test('closed and expired calls lose their native map markers', function()
     h.assertEqual(#infoUpdates, 1, 'a surviving marker refreshes its pause-map details')
 end)
 
+h.test('the expiry sweep never rewrites the info of surviving markers (F#446)', function()
+    Config.map.maxCallBlips = 2
+    Dispatch.state.upsert(call(7, 1, net.now() + 60000))
+    Dispatch.blip.refreshCalls()
+    local createdBefore, infoBefore = #created, #infoUpdates
+    h.assertTrue(createdBefore > 0, 'sanity: the live call has a marker')
+    for _ = 1, 3 do net.intervals[1].fn() end
+    h.assertEqual(#infoUpdates, infoBefore, 'the 5 s sweep does not call setInfo')
+    h.assertEqual(#created, createdBefore, 'the sweep does not recreate an existing marker')
+    Dispatch.state.upsert(call(7, 2, net.now() + 60000))
+    Dispatch.blip.onCallChanged(call(7, 2, net.now() + 60000))
+    h.assertEqual(#infoUpdates, infoBefore + 1, 'a call update still refreshes the marker details')
+end)
+
 h.report('call_blips')

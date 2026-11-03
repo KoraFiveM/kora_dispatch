@@ -51,7 +51,8 @@ end
 
 ---Synchronises the bounded native-map markers to live calls. Markers are
 ---informational only; none receives a GPS route.
-function Dispatch.blip.refreshCalls()
+---@param sweepOnly boolean|nil true from the expiry timer: add/remove markers only, keep existing info (F#446)
+function Dispatch.blip.refreshCalls(sweepOnly)
     local map = Config.map or {}
     local limit = tonumber(map.maxCallBlips) or 0
     if not map.showCallBlips or limit < 1 then
@@ -92,7 +93,7 @@ function Dispatch.blip.refreshCalls()
                 info = callInfo(call),
             })
             if blip then callBlips[id] = blip end
-        else
+        elseif not sweepOnly then
             Kora.blips.setInfo(callBlips[id], callInfo(call))
         end
     end
@@ -157,7 +158,8 @@ end
 
 -- Expiry is clock-based, so an otherwise quiet call has no server update to
 -- remove its marker. A low-frequency local sweep keeps the normal map honest
--- without polling the server or touching the tablet.
+-- without polling the server or touching the tablet. Call events already refresh
+-- marker details, so the sweep only adds and removes markers (F#446).
 Kora.timers.setInterval(function()
-    if Dispatch.state.isActive() then Dispatch.blip.refreshCalls() end
+    if Dispatch.state.isActive() then Dispatch.blip.refreshCalls(true) end
 end, 5000)
