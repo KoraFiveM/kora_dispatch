@@ -89,7 +89,7 @@ duty" — worth surfacing to whoever raised it.
 | `code` | `string` | Short radio code shown as a badge (`10-90`). |
 | `priority` | `1 \| 2 \| 3` | 1 critical, 2 high, 3 routine. Defaults to 2. Out-of-range falls back rather than erroring. |
 | `coords` | `vector3 \| {x,y,z}` | Where. Without it the call has no map marker. |
-| `icon` | `string` | Lucide icon key — see `web/src/components/icons.tsx`. |
+| `icon` | `string` | Lucide icon key, resolved by kora_lib's AppShell dispatch feed (`kora_lib/web/src/components/dispatch/DispatchFeed.tsx`). |
 | `duration` | `number` | ms, overriding the priority's own lifetime. |
 | `sound` | `table` | Overrides the service's alert tone. |
 | `data` | `table` | Freeform, passed through untouched and rendered in the detail panel. |
@@ -383,6 +383,6 @@ crime or waiting for a colleague.
 **driven** rather than auto-advancing, so expiry, fade and retention are all
 deterministic.
 
-`web/` — `pnpm install && pnpm typecheck && pnpm build`. `web/build/` is
-committed (FiveM serves it statically) including the vendored map tiles, so the
-Vite config deliberately does not empty the output directory.
+`web/build/map/` holds only the vendored map tiles, served statically. The
+tablet and feed UI are rendered by kora_lib's AppShell, so this resource has no
+web build step.

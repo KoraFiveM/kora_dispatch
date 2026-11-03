@@ -1,4 +1,3 @@
-web/node_modules/
 
 # Generated per-server kora_lib configuration overrides.
 config.local.lua

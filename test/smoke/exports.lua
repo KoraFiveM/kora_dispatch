@@ -110,30 +110,12 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
         'no hand-rolled ACE check should remain in the code')
 end)
 
-h.test('map tiles opt out of Preflight image clamping', function()
-    -- Tailwind's Preflight ships `img,video{max-width:100%;height:auto}`, and an
-    -- inline `width` does NOT override `max-width` -- they are separate
-    -- properties. Without max-w-none every tile is clamped to the container's
-    -- width while its position keeps spreading with the zoom, tearing the map
-    -- into strips pinned to the edges. It is invisible at low zoom, where tiles
-    -- are smaller than the container and nothing clamps, which is exactly what
-    -- makes it worth a test.
-    local file = assert(io.open('web/src/components/MapView.tsx', 'r'))
-    local source = file:read('*a')
-    file:close()
-
-    local tileImg = source:match('<img.-/>')
-    h.assertTrue(tileImg ~= nil, 'sanity: the tile layer renders an img')
-    h.assertTrue(tileImg:find('max-w-none', 1, true) ~= nil,
-        'the tile image must opt out of Preflight max-width clamping')
-
-    -- And the utility has to survive into the built stylesheet, not just the
-    -- source: Tailwind only emits classes it can see.
-    local css = assert(io.popen("cat web/build/assets/*.css 2>/dev/null"))
-    local built = css:read('*a')
-    css:close()
-    h.assertTrue(built:find('.max-w-none{max-width:none}', 1, true) ~= nil,
-        'max-w-none must be present in the built CSS')
+h.test('only the map tiles remain under web/ (F#447)', function()
+    for _, path in ipairs({ 'web/src', 'web/package.json', 'web/build/index.html', 'web/build/assets' }) do
+        local f = io.open(path, 'r')
+        if f then f:close() end
+        h.assertTrue(f == nil, 'legacy tablet app file must be gone: ' .. path)
+    end
 end)
 
 h.test('the AppShell dispatch manifest does not own a second browser frame', function()

@@ -27,9 +27,9 @@ A pyramid rather than one large image because it zooms for free, needs no
 build-time image tooling, and loads only the six to twelve tiles a viewport can
 actually see rather than the whole map every frame.
 
-`web/build/` is committed, so the tiles ship with the resource and there is no
-build step at resource-start. `vite.config.ts` sets `emptyOutDir: false` for
-exactly this reason -- a normal Vite build would delete them.
+`web/build/map/` is committed, so the tiles ship with the resource and there is
+no build step. The UI itself is kora_lib's AppShell; this resource no longer has
+a web app of its own.
 
 ### Two things about this set that are not true of a normal tile pyramid
 
