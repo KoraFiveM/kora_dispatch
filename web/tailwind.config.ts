@@ -1,4 +1,8 @@
 import type { Config } from "tailwindcss"
+import defaultTheme from "tailwindcss/defaultTheme"
+
+const sansStack = defaultTheme.fontFamily.sans.join(", ")
+const monoStack = ['"SFMono-Regular"', "Consolas", '"Liberation Mono"', "monospace"].join(", ")
 
 // Token contract mirrors kora_lib's own web/tailwind.config.ts -- see
 // kora_lib/web/AGENTS.md, the shared design-system reference for every resource in
@@ -70,8 +74,13 @@ export default {
         floating: "0 12px 32px rgb(0 0 0 / 42%)",
         modal: "0 24px 64px rgb(0 0 0 / 55%)",
       },
+      // kora_theme exposes --font-sans/--font-heading/--font-mono. The stack
+      // lives inside var() as its fallback: a bare `var(--x), a, b` makes the
+      // whole declaration invalid when --x is unset instead of falling through.
       fontFamily: {
-        mono: ['"SFMono-Regular"', "Consolas", '"Liberation Mono"', "monospace"],
+        sans: [`var(--font-sans, ${sansStack})`],
+        heading: [`var(--font-heading, var(--font-sans, ${sansStack}))`],
+        mono: [`var(--font-mono, ${monoStack})`],
       },
       transitionDuration: {
         fast: "120ms",

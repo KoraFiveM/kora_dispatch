@@ -248,7 +248,7 @@ function Header({ onClose }: { onClose: () => void }) {
                 dialog heading -- a hierarchy cue, not a branded title bar. */}
             <span aria-hidden className="h-5 w-[3px] rounded-full bg-primary" />
             <div className="min-w-0">
-                <h1 className="truncate text-[18px] font-semibold leading-6 text-foreground">
+                <h1 className="truncate font-heading text-[18px] font-semibold leading-6 text-foreground">
                     {state.config?.label ?? "Dispatch"}
                 </h1>
                 {state.me ? (
@@ -309,7 +309,7 @@ function Detail({ call }: { call?: DispatchCall }) {
                         <Icon size={14} strokeWidth={2} aria-hidden />
                     </span>
                     <div className="min-w-0">
-                        <h2 className="text-[16px] font-semibold leading-[22px] text-foreground">{call.title}</h2>
+                        <h2 className="font-heading text-[16px] font-semibold leading-[22px] text-foreground">{call.title}</h2>
                         <p className="text-[12px] leading-[17px] text-muted-foreground">
                             {call.code ? `${call.code} · ` : ""}
                             {priority?.label ?? `P${call.priority}`} · {elapsed(call, now)} ago
@@ -366,7 +366,7 @@ function Detail({ call }: { call?: DispatchCall }) {
                 ) : null}
 
                 <div>
-                    <h3 className="mb-1.5 text-[12px] font-semibold leading-4 text-muted-foreground">
+                    <h3 className="mb-1.5 font-heading text-[12px] font-semibold leading-4 text-muted-foreground">
                         Responding ({call.units.length})
                     </h3>
                     {call.units.length === 0 ? (
