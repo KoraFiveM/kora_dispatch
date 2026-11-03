@@ -102,6 +102,9 @@ RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
 end)
 
 AddEventHandler('onClientResourceStart', function(resource)
+    -- Keybinds, timers, callbacks and events live in kora_lib and are lost when it
+    -- restarts; restart kora_dispatch after kora_lib (docs/index.md, F#444).
+    -- Re-rendering here only keeps an open tablet from going blank meanwhile.
     if resource == 'kora_lib' then Dispatch.ui.render(); return end
     if resource ~= GetCurrentResourceName() then return end
     -- A resource restart mid-session has no login event to wait for, so hydrate

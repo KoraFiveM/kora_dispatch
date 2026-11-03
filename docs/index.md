@@ -373,6 +373,17 @@ exports.kora_dispatch:setTheme('#F59E0B')
 
 ---
 
+## Restarting kora_lib
+
+Restart kora_dispatch whenever kora_lib restarts (`ensure kora_lib` then
+`ensure kora_dispatch`, or restart them together). The dispatch keybinds, the
+call-blip refresh timer and the server's unit broadcast and call sweep intervals
+are all registered through kora_lib, and so are dispatch's callbacks and events,
+so they are lost when kora_lib restarts. kora_dispatch only re-renders its open
+tablet when kora_lib comes back; it does not re-register any of these. Until
+it is restarted, the dispatch keys do nothing, unit positions stop updating and
+expired calls are never swept.
+
 ## Testing
 
 **In game:** see [testing.md](testing.md) — `/dispatchtest` raises a real call to
