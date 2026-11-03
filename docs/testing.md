@@ -3,7 +3,8 @@
 Everything below works **solo**. The dev commands exist precisely so raising a
 real call doesn't mean committing a crime, dying, or waiting for a colleague.
 
-They are registered only while `Config.debug` is on (it is, on this test server)
+They are registered only while `Config.debug` is on (it ships off; set
+`Config.debug = true` in `config.lua` or via `/config` on a test server)
 and are admin-gated even then — `/dispatchtest` can put arbitrary text and
 coordinates in front of every on-duty player of a service.
 

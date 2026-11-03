@@ -77,6 +77,13 @@ h.test('the manifest lists every lua file, and every listed file exists', functi
     end
 end)
 
+h.test('Config.debug ships off so dev commands and call logging are opt-in (F#443)', function()
+    local file = assert(io.open('config.lua', 'r'))
+    local source = file:read('*a')
+    file:close()
+    h.assertTrue(source:find('\nConfig.debug = false\n', 1, true) ~= nil, 'config.lua must default Config.debug to false')
+end)
+
 h.test('dev commands are admin-gated and self-disable without Config.debug', function()
     -- /dispatchtest can put arbitrary text and coordinates in front of every
     -- on-duty player of a service. It must never be reachable by an ordinary
