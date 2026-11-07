@@ -31,13 +31,17 @@ local function alertLabel(call)
     return name ~= '' and ('Dispatch: %s'):format(name) or 'Dispatch'
 end
 
+local function callLocation(call)
+    return call.data and call.data.street
+end
+
 local function callInfo(call)
     local priority = Config.priorities[call.priority] or Config.priorities[Config.defaultPriority]
     return {
         title = alertLabel(call),
         rows = {
             { kind = 'name', label = 'Priority', value = priority.label },
-            { kind = 'name', label = 'Location', value = call.location or 'Location unavailable' },
+            { kind = 'name', label = 'Location', value = callLocation(call) or 'Location unavailable' },
             { kind = 'wrappedText', value = call.message or 'No details supplied.' },
         },
     }

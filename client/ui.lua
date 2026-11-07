@@ -9,8 +9,15 @@ local function callTitle(call)
     return (call.code and (call.code .. ' · ') or '') .. (call.title or 'Dispatch call')
 end
 
+-- A call carries no top-level `location` field -- the street name, when a
+-- reporter's client supplied one, rides in `data.street` (see e.g.
+-- kora_ambulance's /911e). Reading `call.location` here always read nil.
+local function callLocation(call)
+    return call.data and call.data.street
+end
+
 local function callDescription(call)
-    return table.concat({ call.message or 'No details supplied.', call.location or 'Location unavailable' }, '\n')
+    return table.concat({ call.message or 'No details supplied.', callLocation(call) or 'Location unavailable' }, '\n')
 end
 
 local function callItems(calls, selected)
@@ -21,7 +28,7 @@ local function callItems(calls, selected)
             icon = call.id == selected and 'radio' or 'map-pin', badge = call.priority,
             tone = call.id == selected and 'primary' or 'neutral', action = 'dispatch:select',
             metadata = {
-                { label = 'Location', value = call.location or 'Unknown' },
+                { label = 'Location', value = callLocation(call) or 'Unknown' },
                 { label = 'Units', value = #(call.units or {}) },
             },
         }
@@ -45,7 +52,7 @@ local function mapBlock(S, calls)
             local lifespan = math.max(0, (tonumber(call.expiresAt) or 0) - (tonumber(call.createdAt) or 0))
             markers[#markers + 1] = {
                 id = tostring(call.id), x = call.coords.x, y = call.coords.y,
-                label = callTitle(call), description = call.location or call.message,
+                label = callTitle(call), description = callLocation(call) or call.message,
                 icon = call.icon or 'map-pin', tone = markerTone(call.priority),
                 action = 'dispatch:select', expiresAt = call.expiresAt,
                 fadeDuration = lifespan * (1 - fadeHoldFraction),
@@ -102,7 +109,7 @@ local function selectedContent(S)
             { label = 'Units assigned', value = #(call.units or {}), icon = 'users' },
             { label = 'Your response', value = mine and mine:gsub('_', ' ') or 'Not assigned', icon = 'radio', tone = mine and 'primary' or 'neutral' },
         } }, { type = 'details', title = 'Call information', columns = 2, items = {
-            { label = 'Location', value = call.location or 'Unknown', icon = 'map-pin' },
+            { label = 'Location', value = callLocation(call) or 'Unknown', icon = 'map-pin' },
             { label = 'Origin', value = call.origin or 'Dispatch', icon = 'radio' },
             { label = 'Created', value = call.createdAt or '—', icon = 'clock' },
             { label = 'Expires', value = call.expiresAt or '—', icon = 'clock', tone = 'warning' },

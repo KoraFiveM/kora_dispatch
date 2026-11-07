@@ -69,16 +69,27 @@ end
 
 Dispatch.api.push = push
 
+---Whether the currently invoking resource may call the free-form, call-mutating
+---API (createCall/updateCall/closeCall). Shared by all three so a resource that
+---is not trusted to raise a call also cannot rewrite or silence someone else's.
+---@param verb string Used only to word the refusal, e.g. 'create'/'update'/'close'.
+---@return boolean ok, string|nil origin, string|nil error
+local function checkTrustedCaller(verb)
+    local origin = GetInvokingResource() or GetCurrentResourceName()
+    if Config.trustedCallers and Config.trustedCallers[origin] ~= true then
+        return false, origin, ('resource %q is not allowed to %s dispatch calls'):format(origin, verb)
+    end
+    return true, origin, nil
+end
+
 ---Raises a new dispatch call.
 ---
 ---@param payload table See docs/index.md for the full field list.
 ---@return integer|false callId
 ---@return integer|string recipientCount when a call was created, or the error
 function Dispatch.api.createCall(payload)
-    local origin = GetInvokingResource() or GetCurrentResourceName()
-    if Config.trustedCallers and Config.trustedCallers[origin] ~= true then
-        return false, ('resource %q is not allowed to create free-form dispatch calls'):format(origin)
-    end
+    local ok, origin, trustErr = checkTrustedCaller('create')
+    if not ok then return false, trustErr end
 
     local normalised, err = Dispatch.calls.normalise(payload, {
         priorities = Config.priorities,
@@ -106,6 +117,9 @@ end
 ---@param patch table
 ---@return boolean ok, string|nil error
 function Dispatch.api.updateCall(id, patch)
+    local ok, _, trustErr = checkTrustedCaller('update')
+    if not ok then return false, trustErr end
+
     local call, err = Dispatch.store.update(id, patch)
     if not call then return false, err end
 
@@ -118,6 +132,9 @@ end
 ---@param reason string|nil
 ---@return boolean ok, string|nil error
 function Dispatch.api.closeCall(id, reason)
+    local ok, _, trustErr = checkTrustedCaller('close')
+    if not ok then return false, trustErr end
+
     local call, err = Dispatch.store.close(id, reason)
     if not call then return false, err end
 
