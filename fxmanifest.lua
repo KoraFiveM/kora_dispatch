@@ -61,3 +61,6 @@ client_scripts {
     'client/keybinds.lua',
     'client/exports.lua',
 }
+
+-- kora_qa: Gherkin test scenarios (converted legacy tests), see [kora]/kora_qa/README.md
+qa_feature 'tests/*.feature'
