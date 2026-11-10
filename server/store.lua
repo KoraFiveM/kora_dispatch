@@ -305,14 +305,16 @@ function Dispatch.store.countLive()
 end
 
 ---Detaches a source from every call it is attached to. Used on drop and on
----going off duty -- a unit that has left cannot still be en route.
+---going off duty -- a unit that has left cannot still be en route. With
+---`shouldDetach`, only the calls it returns true for are left.
 ---@param src integer
+---@param shouldDetach (fun(call: table): boolean)|nil
 ---@return integer[] affectedCallIds
-function Dispatch.store.detachAll(src)
+function Dispatch.store.detachAll(src, shouldDetach)
     local key = tostring(src)
     local affected = {}
     for id, call in pairs(byId) do
-        if call.units[key] then
+        if call.units[key] and (not shouldDetach or shouldDetach(call)) then
             call.units[key] = nil
             affected[#affected + 1] = id
         end

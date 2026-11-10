@@ -227,11 +227,12 @@ function Dispatch.api.setUnitState(src, id, state)
     local updated, err = Dispatch.store.setUnitState(id, src, target, unit)
     if not updated then return false, err end
 
-    -- The first transition into the first state is the "accept", and the only
+    -- A unit's first attach, at whichever state it reports (a unit already on
+    -- scene attaches straight to on_scene), is the "accept", and the only
     -- moment an onAccept hook should fire. Later advances (on scene, clear) are
     -- progress reports, not fresh acceptances -- firing the hook again would
     -- have a house-call queue hand the same job out three times.
-    if call.onAccept and not existing and target == Dispatch.calls.STATES[1] then
+    if call.onAccept and not existing and target then
         TriggerEvent(call.onAccept, src, call.id, call.data)
     end
 
@@ -259,8 +260,8 @@ exports('getOnDutyUnits', Dispatch.api.getOnDutyUnits)
 -- A unit that dropped or went off duty cannot still be en route. Both paths
 -- detach them and re-push the affected calls so everyone else's unit list stops
 -- showing a responder who is not coming.
-local function detach(src)
-    for _, id in ipairs(Dispatch.store.detachAll(src)) do
+local function detach(src, shouldDetach)
+    for _, id in ipairs(Dispatch.store.detachAll(src, shouldDetach)) do
         local call = Dispatch.store.get(id)
         if call then push(call, 'kora_dispatch:client:callUpdated') end
     end
@@ -270,6 +271,20 @@ AddEventHandler('kora_core:server:playerDropped', function(src) detach(src) end)
 
 AddEventHandler('QBCore:Server:SetDuty', function(src, onDuty)
     if not onDuty then detach(src) end
+end)
+
+-- A unit that changed job is no longer a responder for calls its new job was
+-- never sent (setUnitState only attaches invited jobs). Duty-only updates keep
+-- the same job name, so they leave every attachment alone.
+AddEventHandler('QBCore:Server:OnJobUpdate', function(src, job)
+    local name = type(job) == 'table' and job.name or nil
+    if type(src) ~= 'number' or type(name) ~= 'string' then return end
+    detach(src, function(call)
+        for _, jobName in ipairs(call.jobs or {}) do
+            if jobName == name then return false end
+        end
+        return true
+    end)
 end)
 
 CreateThread(function()
