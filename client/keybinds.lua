@@ -19,7 +19,7 @@ local function feedActive()
 end
 
 Kora.keybind.add({
-    name = 'qbdispatch_previous',
+    name = 'kora_dispatch_previous',
     description = 'Dispatch: previous call',
     defaultKey = Config.keybinds.previous,
     onPressed = function()
@@ -30,7 +30,7 @@ Kora.keybind.add({
 })
 
 Kora.keybind.add({
-    name = 'qbdispatch_next',
+    name = 'kora_dispatch_next',
     description = 'Dispatch: next call (scrolls into history)',
     defaultKey = Config.keybinds.next,
     onPressed = function()
@@ -41,7 +41,7 @@ Kora.keybind.add({
 })
 
 Kora.keybind.add({
-    name = 'qbdispatch_respond',
+    name = 'kora_dispatch_respond',
     description = 'Dispatch: accept / en route / on scene / clear',
     defaultKey = Config.keybinds.respond,
     onPressed = function()
@@ -65,7 +65,7 @@ Kora.keybind.add({
             -- refused. A nil `state` is a timed-out callback, NOT a refusal, so
             -- it must stay silent -- inventing a reason for a dropped round trip
             -- would tell the player something the server never said.
-            local state, reason = Kora.callback.trigger('qbdispatch:respond', call.id)
+            local state, reason = Kora.callback.trigger('kora_dispatch:respond', call.id)
 
             if state == false then
                 if reason then Kora.notify.send({ message = reason, type = 'error' }) end
@@ -86,7 +86,7 @@ Kora.keybind.add({
 })
 
 Kora.keybind.add({
-    name = 'qbdispatch_toggle',
+    name = 'kora_dispatch_toggle',
     description = 'Dispatch: hide/show the dispatch UI',
     defaultKey = Config.keybinds.toggle,
     onPressed = function()
@@ -127,7 +127,7 @@ local function warnIfOffDuty()
 end
 
 Kora.keybind.add({
-    name = 'qbdispatch_tablet',
+    name = 'kora_dispatch_tablet',
     description = 'Dispatch: open tablet',
     defaultKey = Config.keybinds.tablet,
     onPressed = function()
@@ -149,7 +149,7 @@ RegisterCommand('dispatchcoords', function()
     local scaleX = (b.image.x - a.image.x) / (b.world.x - a.world.x)
     local scaleY = (b.image.y - a.image.y) / (b.world.y - a.world.y)
 
-    print(('[qbdispatch] world (%.2f, %.2f, %.2f)  ->  map pixel (%.1f, %.1f)'):format(
+    print(('[kora_dispatch] world (%.2f, %.2f, %.2f)  ->  map pixel (%.1f, %.1f)'):format(
         coords.x, coords.y, coords.z,
         a.image.x + (coords.x - a.world.x) * scaleX,
         a.image.y + (coords.y - a.world.y) * scaleY))

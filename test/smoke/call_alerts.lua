@@ -30,7 +30,7 @@ local function call(id)
 end
 
 h.test('a new call shows a dispatch toast and refreshes map markers', function()
-    TriggerEvent('qbdispatch:client:call', call(1), 0)
+    TriggerEvent('kora_dispatch:client:call', call(1), 0)
 
     h.assertEqual(#notices, 1, 'one visible notification is sent')
     h.assertEqual(notices[1].title, 'Dispatch 10-90', 'the radio code identifies the call')
@@ -42,8 +42,8 @@ end)
 
 h.test('hidden feed still acknowledges new calls, duplicate pushes do not', function()
     Dispatch.state.setHidden(true)
-    TriggerEvent('qbdispatch:client:call', call(2), 0)
-    TriggerEvent('qbdispatch:client:call', call(2), 0)
+    TriggerEvent('kora_dispatch:client:call', call(2), 0)
+    TriggerEvent('kora_dispatch:client:call', call(2), 0)
 
     h.assertEqual(#notices, 2, 'a hidden feed does not suppress the new-call toast')
     h.assertEqual(refreshes, 3, 'both pushes keep the marker state current')

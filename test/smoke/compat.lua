@@ -69,11 +69,11 @@ h.test('a legacy alert with no coordinates falls back to the caller position', f
     h.assertEqual(call.coords.x, 100.0, 'read server-side from their ped')
 end)
 
-h.test('qbcore alerts are mirrored exactly once', function()
+h.test('kora_core alerts are mirrored exactly once', function()
     -- Core.dispatch.alert fires this once per alert. Mirroring off its CLIENT
     -- push instead would record the same incident once per recipient.
     Dispatch.store._reset()
-    TriggerEvent('qbcore:server:dispatchAlert', {
+    TriggerEvent('kora_core:server:dispatchAlert', {
         jobs = { 'police' }, title = 'Core alert', message = 'via exports.kora_core:alert',
     }, 1)
 
@@ -84,8 +84,8 @@ end)
 h.test('a malformed legacy payload is ignored, not fatal', function()
     Dispatch.store._reset()
     -- A robbery script mid-heist must not die because its alert was malformed.
-    TriggerEvent('qbcore:server:dispatchAlert', 'not a table')
-    TriggerEvent('qbcore:server:dispatchAlert', { jobs = {} })
+    TriggerEvent('kora_core:server:dispatchAlert', 'not a table')
+    TriggerEvent('kora_core:server:dispatchAlert', { jobs = {} })
 
     h.assertEqual(#Dispatch.api.getCalls({ service = 'leo' }), 0, 'nothing recorded, nothing thrown')
 end)

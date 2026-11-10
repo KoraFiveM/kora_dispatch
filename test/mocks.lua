@@ -77,20 +77,20 @@ function M.install()
     -- src -> { job, onDuty, name, callsign }
     local players = {}
 
-    local qbcore = {}
-    function qbcore:getShared(_registry, key)
+    local kora_core = {}
+    function kora_core:getShared(_registry, key)
         for _, record in ipairs(jobs) do if record.name == key then return record end end
         return nil
     end
-    function qbcore:allShared() return jobs end
-    function qbcore:getJob(src)
+    function kora_core:allShared() return jobs end
+    function kora_core:getJob(src)
         local p = players[src]
         if not p then return nil end
-        local record = qbcore:getShared('jobs', p.job)
+        local record = kora_core:getShared('jobs', p.job)
         return { name = p.job, label = record and record.label, type = record and record.type,
                  onduty = p.onDuty, grade = { name = 'Grade', level = 1 } }
     end
-    function qbcore:getPlayersByJob(name, onDutyOnly)
+    function kora_core:getPlayersByJob(name, onDutyOnly)
         local out = {}
         for src, p in pairs(players) do
             if p.job == name and (not onDutyOnly or p.onDuty) then out[#out + 1] = src end
@@ -98,23 +98,23 @@ function M.install()
         table.sort(out)
         return out
     end
-    function qbcore:getPlayersByJobType(jobType, onDutyOnly)
+    function kora_core:getPlayersByJobType(jobType, onDutyOnly)
         local out = {}
         for src, p in pairs(players) do
-            local record = qbcore:getShared('jobs', p.job)
+            local record = kora_core:getShared('jobs', p.job)
             if record and record.type == jobType and (not onDutyOnly or p.onDuty) then out[#out + 1] = src end
         end
         table.sort(out)
         return out
     end
-    function qbcore:getOnDutyRoster(filter)
+    function kora_core:getOnDutyRoster(filter)
         filter = filter or {}
         local onDutyOnly = filter.onDutyOnly
         if onDutyOnly == nil then onDutyOnly = true end
 
         local out = {}
         for src, p in pairs(players) do
-            local record = qbcore:getShared('jobs', p.job)
+            local record = kora_core:getShared('jobs', p.job)
             local jobType = record and record.type or 'none'
             local ok = (not onDutyOnly or p.onDuty)
                 and (not filter.job or filter.job == p.job)
@@ -135,10 +135,10 @@ function M.install()
     -- the public surface.
     --
     -- Colon-call dispatch passes the receiver as `self`, which the `function
-    -- qbcore:fn(...)` sugar already declares -- so each method's named
+    -- kora_core:fn(...)` sugar already declares -- so each method's named
     -- parameters line up with the real export's signature exactly.
     local registered = {}
-    _G.exports = setmetatable({ kora_core = qbcore }, {
+    _G.exports = setmetatable({ kora_core = kora_core }, {
         __call = function(_, name, fn) registered[name] = fn end,
     })
 

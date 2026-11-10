@@ -78,7 +78,7 @@ export function Tablet() {
     return (
         <div className="pointer-events-auto fixed inset-0 z-overlay flex items-center justify-center bg-black/[.68] p-4">
             <div className="dispatch-tablet panel flex h-[min(680px,calc(100vh-2rem))] w-[min(1100px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl shadow-modal">
-                <Header onClose={() => fetchNui("qbdispatch:close")} />
+                <Header onClose={() => fetchNui("kora_dispatch:close")} />
 
                 <div className="dispatch-layout grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)_300px]">
                     <aside className="dispatch-feed flex min-h-0 flex-col border-r border-border">
@@ -129,7 +129,7 @@ export function Tablet() {
                                         config={config}
                                         me={state.me}
                                         selected={call.id === state.selected}
-                                        onSelect={(id) => fetchNui("qbdispatch:select", { id })}
+                                        onSelect={(id) => fetchNui("kora_dispatch:select", { id })}
                                     />
                                 ))
                             )}
@@ -153,7 +153,7 @@ export function Tablet() {
                                 me={state.me}
                                 now={now}
                                 selected={state.selected}
-                                onSelect={(id) => fetchNui("qbdispatch:select", { id })}
+                                onSelect={(id) => fetchNui("kora_dispatch:select", { id })}
                             />
                         ) : null}
                     </div>
@@ -343,7 +343,7 @@ function Detail({ call }: { call?: DispatchCall }) {
                         </div>
                         <button
                             type="button"
-                            onClick={() => fetchNui("qbdispatch:setWaypoint", { id: call.id })}
+                            onClick={() => fetchNui("kora_dispatch:setWaypoint", { id: call.id })}
                             className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border-strong px-3 text-[12px] font-medium leading-4 text-foreground transition-colors duration-fast hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                             <Navigation size={13} aria-hidden />
@@ -394,7 +394,7 @@ function Detail({ call }: { call?: DispatchCall }) {
                     <div className="flex gap-2">
                         <button
                             type="button"
-                            onClick={() => fetchNui("qbdispatch:respond", { id: call.id })}
+                            onClick={() => fetchNui("kora_dispatch:respond", { id: call.id })}
                             className="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-primary px-4 text-[13px] font-medium leading-5 text-primary-foreground shadow-low transition-colors duration-fast hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                             {nextLabel}
@@ -402,7 +402,7 @@ function Detail({ call }: { call?: DispatchCall }) {
                         {mine ? (
                             <button
                                 type="button"
-                                onClick={() => fetchNui("qbdispatch:respond", { id: call.id, state: false })}
+                                onClick={() => fetchNui("kora_dispatch:respond", { id: call.id, state: false })}
                                 className="inline-flex h-9 items-center justify-center rounded-lg px-3 text-[13px] font-medium leading-5 text-muted-foreground transition-colors duration-fast hover:bg-surface-hover hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                                 Detach

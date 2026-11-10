@@ -15,7 +15,7 @@ net.setPlayer(2, 'sheriff', true, { name = 'Sam Reed', callsign = 'S-01' })
 net.setPlayer(3, 'ambulance', true, { name = 'Mia Chen', callsign = 'MED-3' })
 
 local function unitPushes()
-    return net.eventsNamed('qbdispatch:client:units')
+    return net.eventsNamed('kora_dispatch:client:units')
 end
 
 h.test('with nobody viewing, the heartbeat does no work at all', function()

@@ -174,13 +174,13 @@ A call may name a server event to fire when a unit **first** attaches:
 exports.kora_dispatch:createCall({
     jobTypes = { 'ems' },
     title    = 'House Call',
-    onAccept = 'qbambulance:server:housecallAccepted',
+    onAccept = 'kora_ambulance:server:housecallAccepted',
     data     = { requestId = 7 },
 })
 ```
 
 ```lua
-RegisterNetEvent('qbambulance:server:housecallAccepted', function(src, callId, data)
+RegisterNetEvent('kora_ambulance:server:housecallAccepted', function(src, callId, data)
     if source ~= 0 and source ~= nil then return end -- server-raised only
     claim(src, data.requestId)
 end)
@@ -319,7 +319,7 @@ Two things keep this free:
 ## Legacy compatibility
 
 `exports.kora_core:alert` keeps working: kora_core fires a server-side
-`qbcore:server:dispatchAlert` once per alert, and dispatch mirrors it into a real
+`kora_core:server:dispatchAlert` once per alert, and dispatch mirrors it into a real
 call. Anything already written against that API gets a proper UI instead of a
 notification that vanishes.
 

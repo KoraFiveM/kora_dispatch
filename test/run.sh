@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs every qbdispatch smoke test with plain Lua (no busted, no FiveM, no DB).
+# Runs every kora_dispatch smoke test with plain Lua (no busted, no FiveM, no DB).
 # Exits non-zero on any failure.
 #
 # Each file loads only what it exercises, in one realm. The clock in

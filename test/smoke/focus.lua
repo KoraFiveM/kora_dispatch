@@ -126,8 +126,8 @@ Kora.nui.closeApp = function()
     if appThread then local thread = appThread; appThread = nil; resume(thread) end
 end
 Kora.callback.trigger = function(name, value)
-    if name == 'qbdispatch:setViewing' then viewing[#viewing + 1] = value end
-    if name == 'qbdispatch:respond' and pauseResponse then
+    if name == 'kora_dispatch:setViewing' then viewing[#viewing + 1] = value end
+    if name == 'kora_dispatch:respond' and pauseResponse then
         responseThread = coroutine.running(); coroutine.yield('respond'); return nil
     end
     return true
@@ -154,8 +154,8 @@ h.test('call pushes publish the complete configured feed and derived service the
         accent = '#3B82F6', feed = { maxVisible = 1, position = 'top-left' }, priorities = Config.priorities,
     })
     Dispatch.theme.set(nil)
-    TriggerEvent('qbdispatch:client:call', call(101, 100), 500)
-    TriggerEvent('qbdispatch:client:call', call(102, 200), 500)
+    TriggerEvent('kora_dispatch:client:call', call(101, 100), 500)
+    TriggerEvent('kora_dispatch:client:call', call(102, 200), 500)
     h.assertEqual(#feed().calls, 2, 'the browser receives calls beyond the visible cap')
     h.assertEqual(feed().calls[1].id, 102); h.assertEqual(feed().calls[1].data.street, 'Alta Street')
     h.assertEqual(feed().now, 500); h.assertEqual(feed().me.src, 1)
@@ -168,21 +168,21 @@ end)
 
 h.test('selection can browse live calls and history and publishes server response updates', function()
     local history = call(99, 1); history.closedAt = 2
-    TriggerEvent('qbdispatch:client:callUpdated', history, 500)
-    keys.qbdispatch_previous.onPressed(); h.assertEqual(feed().selected, 102)
-    keys.qbdispatch_next.onPressed(); h.assertEqual(feed().selected, 101)
-    keys.qbdispatch_next.onPressed(); h.assertEqual(feed().selected, 99)
+    TriggerEvent('kora_dispatch:client:callUpdated', history, 500)
+    keys.kora_dispatch_previous.onPressed(); h.assertEqual(feed().selected, 102)
+    keys.kora_dispatch_next.onPressed(); h.assertEqual(feed().selected, 101)
+    keys.kora_dispatch_next.onPressed(); h.assertEqual(feed().selected, 99)
     h.assertEqual(feed().calls[3].closedAt, 2)
     local updated = call(102, 200); updated.units = { { src = 1, state = 'en_route' } }
-    TriggerEvent('qbdispatch:client:callUpdated', updated, 500)
+    TriggerEvent('kora_dispatch:client:callUpdated', updated, 500)
     h.assertEqual(feed().calls[1].units[1].state, 'en_route')
 end)
 
 h.test('mute, presentation options and theme exports immediately update the closed-tablet feed', function()
-    keys.qbdispatch_toggle.onPressed(); h.assertEqual(feed().hidden, true)
-    TriggerEvent('qbdispatch:client:call', call(103, 300), 500)
+    keys.kora_dispatch_toggle.onPressed(); h.assertEqual(feed().hidden, true)
+    TriggerEvent('kora_dispatch:client:call', call(103, 300), 500)
     h.assertEqual(sounds, 2, 'mute still suppresses the incoming tone'); h.assertEqual(#notices, 3)
-    keys.qbdispatch_toggle.onPressed(); h.assertEqual(feed().hidden, false)
+    keys.kora_dispatch_toggle.onPressed(); h.assertEqual(feed().hidden, false)
     h.assertEqual(mock.registeredExports.setUiOptions({ maxVisible = 0, position = 'top-center', hidden = true }), true)
     h.assertEqual(feed().config.feed.maxVisible, 0); h.assertEqual(feed().config.feed.position, 'top-center')
     h.assertEqual(feed().hidden, true)
@@ -209,7 +209,7 @@ end)
 
 h.test('respond fallback publishes its selected call before an awaited callback can complete', function()
     Dispatch.state.select(nil); Dispatch.ui.render(); pauseResponse = true
-    keys.qbdispatch_respond.onPressed()
+    keys.kora_dispatch_respond.onPressed()
     h.assertEqual(coroutine.status(responseThread), 'suspended')
     h.assertEqual(feed().selected, 103, 'selection is visible during the server round trip')
     resume(responseThread); pauseResponse = false

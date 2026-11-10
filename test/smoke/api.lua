@@ -33,7 +33,7 @@ h.test('a job type reaches every job carrying it', function()
 
     h.assertTrue(id ~= false, 'the call should be created: ' .. tostring(count))
     h.assertEqual(count, 2, 'both the on-duty officer and the on-duty deputy')
-    equalList(targets('qbdispatch:client:call'), { 1, 2 }, 'police and sheriff, not the off-duty cop')
+    equalList(targets('kora_dispatch:client:call'), { 1, 2 }, 'police and sheriff, not the off-duty cop')
 end)
 
 h.test('a specific job reaches only that job', function()
@@ -41,14 +41,14 @@ h.test('a specific job reaches only that job', function()
     local _, count = Dispatch.api.createCall({ jobs = { 'police' }, title = 'Police only' })
 
     h.assertEqual(count, 1, 'only the on-duty police officer')
-    equalList(targets('qbdispatch:client:call'), { 1 }, 'the deputy is a different job')
+    equalList(targets('kora_dispatch:client:call'), { 1 }, 'the deputy is a different job')
 end)
 
 h.test('off-duty and unrelated players never receive a call', function()
     net.clearEvents()
     Dispatch.api.createCall({ jobTypes = { 'leo' }, title = 'Nobody else' })
 
-    for _, target in ipairs(targets('qbdispatch:client:call')) do
+    for _, target in ipairs(targets('kora_dispatch:client:call')) do
         h.assertTrue(target ~= 4, 'the off-duty officer must not be alerted')
         h.assertTrue(target ~= 5, 'the civilian must never see call content')
     end
@@ -160,10 +160,10 @@ h.test('onAccept fires once, on the first attach only', function()
     -- A house-call queue hands out the job on accept. Firing again as the unit
     -- reports on scene would hand the same job to them a second time.
     local fired = 0
-    AddEventHandler('qbdispatch:test:accepted', function() fired = fired + 1 end)
+    AddEventHandler('kora_dispatch:test:accepted', function() fired = fired + 1 end)
 
     local id = Dispatch.api.createCall({
-        jobTypes = { 'ems' }, title = 'House call', onAccept = 'qbdispatch:test:accepted',
+        jobTypes = { 'ems' }, title = 'House call', onAccept = 'kora_dispatch:test:accepted',
     })
 
     Dispatch.api.setUnitState(3, id)
@@ -204,7 +204,7 @@ h.test('update revises an open call and re-pushes it', function()
 
     h.assertTrue(Dispatch.api.updateCall(id, { message = 'Now a red Sultan' }), 'the update should apply')
     h.assertEqual(Dispatch.api.getCall(id).message, 'Now a red Sultan', 'the new detail is stored')
-    h.assertTrue(#net.eventsNamed('qbdispatch:client:callUpdated') > 0, 'and pushed to recipients')
+    h.assertTrue(#net.eventsNamed('kora_dispatch:client:callUpdated') > 0, 'and pushed to recipients')
 end)
 
 h.test('update cannot move a call between services', function()

@@ -208,7 +208,7 @@ end)
 exports('createPlayerCall', Dispatch.ingress.create)
 
 AddEventHandler('playerDropped', function() lastRequestAt[source] = nil end)
-AddEventHandler('qbcore:server:playerDropped', function(src) lastRequestAt[src] = nil end)
+AddEventHandler('kora_core:server:playerDropped', function(src) lastRequestAt[src] = nil end)
 
 -- Test seams: reset only transient cooldowns. Definitions are resource-owned
 -- registrations and intentionally survive store resets.

@@ -87,7 +87,7 @@ Feature: kora_dispatch — Police & EMS
     When I manually: press End again
     Then I confirm: the feed is restored
     When I press the "F9" key
-    Then the "qbdispatch:tablet" app opens
+    Then the "kora_dispatch:tablet" app opens
     When I manually: press End
     Then I confirm: the tablet closes
 
@@ -99,12 +99,12 @@ Feature: kora_dispatch — Police & EMS
     Given my job is "police"
     And I am on duty
     When I press the "F9" key
-    Then the "qbdispatch:tablet" app opens
+    Then the "kora_dispatch:tablet" app opens
     And I confirm: the tablet shows a map
     When I press the "F9" key
     Then I confirm: the tablet closes and I get mouse control back
     When I press the "F9" key
-    Then the "qbdispatch:tablet" app opens
+    Then the "kora_dispatch:tablet" app opens
     When I manually: press X
     Then I confirm: the tablet closes and I get mouse control back
 
@@ -117,7 +117,7 @@ Feature: kora_dispatch — Police & EMS
     And I am on duty
     When I run the command "/dispatchtest 1"
     And I press the "F9" key
-    Then the "qbdispatch:tablet" app opens
+    Then the "kora_dispatch:tablet" app opens
     When I manually: drag the map to pan it and scroll to zoom
     Then I confirm: the map pans and zooms
     When I manually: click the Crosshair button
@@ -168,7 +168,7 @@ Feature: kora_dispatch — Police & EMS
     And I am on duty
     When I manually: ask a second player to go on duty as police
     And I press the "F9" key
-    Then the "qbdispatch:tablet" app opens
+    Then the "kora_dispatch:tablet" app opens
     And I confirm: I see the other player on the tablet map with callsign and vehicle icon (car/heli)
     And I confirm: their marker updates as they move
     And I confirm: the second player sees me on their tablet map the same way
@@ -215,7 +215,7 @@ Feature: kora_dispatch — Police & EMS
     Then I confirm: the routine call has expired from the live feed
     And I confirm: the critical call is still live (it lasts 10 minutes)
     When I press the "F9" key
-    Then the "qbdispatch:tablet" app should be open
+    Then the "kora_dispatch:tablet" app should be open
     When I manually: open History in the tablet
     Then I confirm: the expired routine call is still listed in History
 
@@ -240,7 +240,7 @@ Feature: kora_dispatch — Police & EMS
     Given my job is "police"
     And I am on duty
     When I press the "F9" key
-    Then the "qbdispatch:tablet" app should be open
+    Then the "kora_dispatch:tablet" app should be open
     And I confirm: the dispatch UI accent is blue
     When I run the command "/ems-duty"
     And I manually: switch to an EMS job and go on duty without restarting the resource
@@ -310,8 +310,8 @@ Feature: kora_dispatch — Police & EMS
   @kora_dispatch @checklist @checklist:kora_dispatch:legacy-alert-compat @cat:police-and-ems @needs:admin @manual
   Scenario: Legacy exports.kora_core:alert mirrored
     """
-    Checklist test: A script firing qbcore:server:dispatchAlert / kora_core alert produces a real dispatch call in the feed.
+    Checklist test: A script firing kora_core:server:dispatchAlert / kora_core alert produces a real dispatch call in the feed.
     """
-    When I manually: as an admin, use /runcode to run a snippet that calls exports.kora_core:alert (or triggers qbcore:server:dispatchAlert on the server) with a test message
+    When I manually: as an admin, use /runcode to run a snippet that calls exports.kora_core:alert (or triggers kora_core:server:dispatchAlert on the server) with a test message
     Then I confirm: a real dispatch call appears in my dispatch feed
     And I confirm: the same call is listed in the F9 tablet

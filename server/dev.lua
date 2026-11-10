@@ -12,16 +12,16 @@ Dispatch = Dispatch or {}
 
 -- Ranked levels, most-privileged first, matching kora_admin's own table. Ranked
 -- rather than a single ACE string so a 'god' satisfies an 'admin' requirement --
--- which a bare IsPlayerAceAllowed(src, 'qbcore.admin') does not.
+-- which a bare IsPlayerAceAllowed(src, 'kora_core.admin') does not.
 local LEVELS = { 'god', 'admin', 'mod', 'user' }
-local PERMISSION_OPTIONS = { prefix = 'qbcore' }
+local PERMISSION_OPTIONS = { prefix = 'kora_core' }
 
 ---Delegates to kora_lib rather than hand-rolling an ACE check.
 ---
 ---Kora.permissions.hasLevel accepts EITHER `kora_core.<level>` or the bare
 ---`group.<level>` principal, and folds in Discord roles where a server
 ---configures them. The hand-rolled version this replaces only ever tested
----`qbcore.admin`, so an admin who held `group.admin` -- which is how this test
+---`kora_core.admin`, so an admin who held `group.admin` -- which is how this test
 ---server's own server.cfg grants it -- was refused by dispatch while every
 ---other admin command on the server accepted them.
 ---@param source integer
@@ -136,7 +136,7 @@ Kora.commands.add('dispatchclear', 'Close every live call on your service', {}, 
 end, { permission = 'admin', checkPermission = isAdmin })
 
 Kora.commands.add('dispatchstatus', 'Print dispatch state to the server console', {}, false, function(source)
-    print('[qbdispatch] ---- status ----')
+    print('[kora_dispatch] ---- status ----')
     print(('  tablet viewers: %d'):format(Dispatch.units.viewerCount()))
 
     for _, service in ipairs(Dispatch.store.services()) do

@@ -101,10 +101,10 @@ function Dispatch.api.createCall(payload)
     if not service then return false, resolveErr end
 
     local call = Dispatch.store.insert(normalised, service, jobs, origin)
-    local count = push(call, 'qbdispatch:client:call')
+    local count = push(call, 'kora_dispatch:client:call')
 
     if Config.debug then
-        print(('[qbdispatch] #%d %s/%s "%s" -> %d recipient(s) from %s')
+        print(('[kora_dispatch] #%d %s/%s "%s" -> %d recipient(s) from %s')
             :format(call.id, service, call.code or 'no-code', call.title, count, origin))
     end
 
@@ -123,7 +123,7 @@ function Dispatch.api.updateCall(id, patch)
     local call, err = Dispatch.store.update(id, patch)
     if not call then return false, err end
 
-    push(call, 'qbdispatch:client:callUpdated')
+    push(call, 'kora_dispatch:client:callUpdated')
     return true
 end
 
@@ -138,7 +138,7 @@ function Dispatch.api.closeCall(id, reason)
     local call, err = Dispatch.store.close(id, reason)
     if not call then return false, err end
 
-    push(call, 'qbdispatch:client:callUpdated')
+    push(call, 'kora_dispatch:client:callUpdated')
     return true
 end
 
@@ -235,7 +235,7 @@ function Dispatch.api.setUnitState(src, id, state)
         TriggerEvent(call.onAccept, src, call.id, call.data)
     end
 
-    push(updated, 'qbdispatch:client:callUpdated')
+    push(updated, 'kora_dispatch:client:callUpdated')
 
     return target or false
 end
@@ -262,11 +262,11 @@ exports('getOnDutyUnits', Dispatch.api.getOnDutyUnits)
 local function detach(src)
     for _, id in ipairs(Dispatch.store.detachAll(src)) do
         local call = Dispatch.store.get(id)
-        if call then push(call, 'qbdispatch:client:callUpdated') end
+        if call then push(call, 'kora_dispatch:client:callUpdated') end
     end
 end
 
-AddEventHandler('qbcore:server:playerDropped', function(src) detach(src) end)
+AddEventHandler('kora_core:server:playerDropped', function(src) detach(src) end)
 
 AddEventHandler('QBCore:Server:SetDuty', function(src, onDuty)
     if not onDuty then detach(src) end

@@ -123,6 +123,11 @@ Config.trustedCallers = {
     kora_businesses = true,
     kora_robberies = true,
 }
+-- FFT runner seam (development only): the functional-test resource `fft` may
+-- raise and close calls, but only while `setr fft_kora_hooks true` is set.
+if GetConvar and GetConvar('fft_kora_hooks', 'false') == 'true' then
+    Config.trustedCallers.fft = true
+end
 
 -- --- feed -------------------------------------------------------------------
 Config.feed = {
@@ -240,7 +245,7 @@ Config.compat = {
     --
     -- Enable it only on a server with no job resource handling these names.
     legacyInbound = false,
-    -- kora_core's own Core.dispatch.alert push (qbcore:client:dispatchAlert) is
+    -- kora_core's own Core.dispatch.alert push (kora_core:client:dispatchAlert) is
     -- also rendered, so anything calling exports.kora_core:alert directly still
     -- reaches a real UI instead of nothing.
     coreAlerts = true,

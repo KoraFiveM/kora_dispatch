@@ -19,7 +19,7 @@ local definition = {
     cooldown = 20000,
 }
 
-local ok, err = Dispatch.ingress.register('qbpolice:test-gunfire', definition)
+local ok, err = Dispatch.ingress.register('kora_police:test-gunfire', definition)
 assert(ok, err)
 
 local function reset()
@@ -29,38 +29,38 @@ end
 
 h.test('a registered player alert uses fixed presentation and server coordinates', function()
     reset()
-    local id = Dispatch.ingress.create(1, 'qbpolice:test-gunfire')
+    local id = Dispatch.ingress.create(1, 'kora_police:test-gunfire')
     h.assertTrue(id ~= false, 'the registered incident should be created')
 
     local call = Dispatch.api.getCall(id)
     h.assertEqual(call.title, 'Shots Fired', 'title comes from registration')
     h.assertEqual(call.coords.x, 100.0, 'position comes from the reporter ped')
-    h.assertEqual(call.data.incident, 'qbpolice:test-gunfire', 'wire data identifies the allowlisted type')
+    h.assertEqual(call.data.incident, 'kora_police:test-gunfire', 'wire data identifies the allowlisted type')
     h.assertEqual(call.data.reporter, 1, 'wire data identifies the reporter')
 end)
 
 h.test('cooldowns are per player and alert type', function()
     reset()
-    h.assertTrue(Dispatch.ingress.create(1, 'qbpolice:test-gunfire') ~= false, 'first request')
+    h.assertTrue(Dispatch.ingress.create(1, 'kora_police:test-gunfire') ~= false, 'first request')
 
-    local id, reason, remaining = Dispatch.ingress.create(1, 'qbpolice:test-gunfire')
+    local id, reason, remaining = Dispatch.ingress.create(1, 'kora_police:test-gunfire')
     h.assertFalse(id, 'a repeated request is refused')
     h.assertEqual(reason, 'player alert is cooling down', 'with a stable reason')
     h.assertEqual(remaining, 20000, 'and an actionable remaining duration')
 
-    h.assertTrue(Dispatch.ingress.create(2, 'qbpolice:test-gunfire') ~= false,
+    h.assertTrue(Dispatch.ingress.create(2, 'kora_police:test-gunfire') ~= false,
         "one player's cooldown does not mute another")
     net.advance(20001)
-    h.assertTrue(Dispatch.ingress.create(1, 'qbpolice:test-gunfire') ~= false,
+    h.assertTrue(Dispatch.ingress.create(1, 'kora_police:test-gunfire') ~= false,
         'the original reporter can raise a genuinely new incident later')
 end)
 
 h.test('an unregistered or foreign-owned incident cannot be raised', function()
     reset()
-    h.assertFalse(Dispatch.ingress.create(1, 'qbpolice:not-real'), 'unknown keys fail closed')
+    h.assertFalse(Dispatch.ingress.create(1, 'kora_police:not-real'), 'unknown keys fail closed')
 
     net.setInvokingResource('kora_ambulance')
-    local id, reason = Dispatch.ingress.create(1, 'qbpolice:test-gunfire')
+    local id, reason = Dispatch.ingress.create(1, 'kora_police:test-gunfire')
     h.assertFalse(id, 'another resource cannot borrow a registered incident')
     h.assertTrue(reason:find('does not own', 1, true) ~= nil, 'ownership denial is explicit')
     net.setInvokingResource('kora_police')
@@ -79,12 +79,12 @@ h.test('a job-type entitlement is checked centrally when configured', function()
     local entitled = {}
     for field, value in pairs(definition) do entitled[field] = value end
     entitled.requiredJobType = 'leo'
-    local registered, reason = Dispatch.ingress.register('qbpolice:officer-only', entitled)
+    local registered, reason = Dispatch.ingress.register('kora_police:officer-only', entitled)
     h.assertTrue(registered, reason)
 
-    h.assertFalse(Dispatch.ingress.create(1, 'qbpolice:officer-only'),
+    h.assertFalse(Dispatch.ingress.create(1, 'kora_police:officer-only'),
         'a civilian cannot raise an officer-only alert')
-    h.assertTrue(Dispatch.ingress.create(2, 'qbpolice:officer-only') ~= false,
+    h.assertTrue(Dispatch.ingress.create(2, 'kora_police:officer-only') ~= false,
         'an on-duty LEO can raise it')
 end)
 
@@ -93,8 +93,8 @@ h.test('the global live-call ceiling bounds public fanout state', function()
     local previous = Config.ingress.maxLiveCalls
     Config.ingress.maxLiveCalls = 1
 
-    h.assertTrue(Dispatch.ingress.create(1, 'qbpolice:test-gunfire') ~= false, 'first live call')
-    local id, reason = Dispatch.ingress.create(2, 'qbpolice:test-gunfire')
+    h.assertTrue(Dispatch.ingress.create(1, 'kora_police:test-gunfire') ~= false, 'first live call')
+    local id, reason = Dispatch.ingress.create(2, 'kora_police:test-gunfire')
     h.assertFalse(id, 'the next public call is refused at capacity')
     h.assertEqual(reason, 'player alert capacity reached', 'with a stable reason')
 

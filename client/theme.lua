@@ -74,6 +74,6 @@ end
 
 -- A /theme change must reach the feed tokens too (the AppShell follows it on
 -- its own). Only matters while no explicit accent is pinned.
-AddEventHandler('qbtheme:playerThemeChanged', function()
+AddEventHandler('kora_theme:playerThemeChanged', function()
     if current == nil then Dispatch.theme.refresh() end
 end)

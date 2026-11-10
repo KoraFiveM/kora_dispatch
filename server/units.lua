@@ -112,7 +112,7 @@ local function broadcast(service, watchers)
     -- means a viewer is never range-filtered out of their own list.
     for _, src in ipairs(watchers) do
         if not rangeSquared or not positions[src] then
-            TriggerClientEvent('qbdispatch:client:units', src, units)
+            TriggerClientEvent('kora_dispatch:client:units', src, units)
         else
             local origin = positions[src]
             local visible = {}
@@ -121,7 +121,7 @@ local function broadcast(service, watchers)
                     visible[#visible + 1] = unit
                 end
             end
-            TriggerClientEvent('qbdispatch:client:units', src, visible)
+            TriggerClientEvent('kora_dispatch:client:units', src, visible)
         end
     end
 end
@@ -159,7 +159,7 @@ function Dispatch.units.viewerCount()
     return n
 end
 
-AddEventHandler('qbcore:server:playerDropped', function(src) viewers[src] = nil end)
+AddEventHandler('kora_core:server:playerDropped', function(src) viewers[src] = nil end)
 AddEventHandler('playerDropped', function() viewers[source] = nil end)
 
 CreateThread(function()

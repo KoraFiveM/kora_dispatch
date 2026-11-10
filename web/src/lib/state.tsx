@@ -34,7 +34,7 @@ export function DispatchProvider({ children }: { children: ReactNode }) {
     const clock = useRef(new GameClock())
     const [now, setNow] = useState(0)
 
-    useNuiEvent<DispatchState>("qbdispatch:state", (next) => {
+    useNuiEvent<DispatchState>("kora_dispatch:state", (next) => {
         if (!next) return
         clock.current.sync(next.now)
         setState(next)
@@ -45,8 +45,8 @@ export function DispatchProvider({ children }: { children: ReactNode }) {
     // this ping is what releases it. Without it the UI stays blank until the
     // next state change, which on a quiet server can be minutes.
     useEffect(() => {
-        fetchNui("qbdispatch:ready").catch((error) => {
-            console.error("[qbdispatch] ready ping failed:", error)
+        fetchNui("kora_dispatch:ready").catch((error) => {
+            console.error("[kora_dispatch] ready ping failed:", error)
         })
     }, [])
 

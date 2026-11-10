@@ -129,7 +129,7 @@ local function appDefinition()
     local S = Dispatch.state.data
     local active = Dispatch.state.live()
     return {
-        id = 'qbdispatch:tablet', title = (S.config and S.config.label) or 'Dispatch',
+        id = 'kora_dispatch:tablet', title = (S.config and S.config.label) or 'Dispatch',
         description = S.unit and ((S.unit.callsign and S.unit.callsign .. ' · ' or '') .. (S.unit.name or ('Unit ' .. S.unit.src))) or 'Dispatch tablet',
         icon = 'radio', accent = Dispatch.theme.get(), width = 1220, height = 800,
         navigation = {
@@ -172,7 +172,7 @@ local function appDefinition()
             end
             local response = actionId:match('^dispatch:respond:(.+)$')
             if not response then error('Unknown dispatch action.') end
-            local state, err = Kora.callback.trigger('qbdispatch:respond', call.id, response)
+            local state, err = Kora.callback.trigger('kora_dispatch:respond', call.id, response)
             if state == false then error(err or 'Could not update the call.') end
             return { update = { navigation = appDefinition().navigation } }
         end,
@@ -198,7 +198,7 @@ function Dispatch.ui.render()
 end
 
 local function setViewing(open)
-    CreateThread(function() Kora.callback.trigger('qbdispatch:setViewing', open) end)
+    CreateThread(function() Kora.callback.trigger('kora_dispatch:setViewing', open) end)
 end
 
 ---@param open boolean
@@ -206,7 +206,7 @@ function Dispatch.ui.setTablet(open)
     if not open then
         if not Dispatch.state.data.tabletOpen then return end
         Dispatch.state.setTabletOpen(false)
-        Kora.nui.closeApp('qbdispatch:tablet')
+        Kora.nui.closeApp('kora_dispatch:tablet')
         setViewing(false)
         Dispatch.ui.render()
         return
@@ -216,7 +216,7 @@ function Dispatch.ui.setTablet(open)
     Dispatch.ui.render()
     setViewing(true)
     CreateThread(function()
-        Kora.nui.openApp('qbdispatch:tablet')
+        Kora.nui.openApp('kora_dispatch:tablet')
         if Dispatch.state.data.tabletOpen then
             Dispatch.state.setTabletOpen(false)
             setViewing(false)

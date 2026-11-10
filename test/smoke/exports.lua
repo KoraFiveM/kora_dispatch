@@ -97,7 +97,7 @@ h.test('dev commands are admin-gated and self-disable without Config.debug', fun
     h.assertEqual(gated, commands, 'every dev command must be admin-gated')
 
     -- Delegated to kora_lib rather than hand-rolled. A bare
-    -- IsPlayerAceAllowed(src, 'qbcore.admin') refuses an admin who holds the
+    -- IsPlayerAceAllowed(src, 'kora_core.admin') refuses an admin who holds the
     -- bare `group.admin` principal -- which is how this framework's own
     -- server.cfg grants it -- and ignores level ranking, so a 'god' would fail
     -- an 'admin' gate.

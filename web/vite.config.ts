@@ -1,14 +1,14 @@
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
-import qbtheme from "../../kora_theme/vite-plugin.mjs"
+import kora_theme from "../../kora_theme/vite-plugin.mjs"
 
 // FiveM's CEF NUI browser loads this page from a local resource path, not from
 // a domain root -- asset URLs must be relative ("./assets/..") or every
 // script/style 404s in-game. Do NOT change `base` back to "/". Same convention
 // as kora_lib's and kora_hud's own vite configs.
 export default defineConfig({
-    plugins: [qbtheme(), react()],
+    plugins: [kora_theme(), react()],
     base: "./",
     build: {
         outDir: "build",

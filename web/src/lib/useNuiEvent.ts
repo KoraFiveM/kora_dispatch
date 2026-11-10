@@ -12,7 +12,7 @@ import type { NuiWireMessage } from "./types"
  * Deliberately no event.source/event.origin check. FiveM posts SendNUIMessage
  * from the game's own NUI window (origin "nui://game"), not from this page, so
  * any source/origin gate silently discards every real message from Lua. The
- * same warning is on kora_lib's and qbhud's copies of this file.
+ * same warning is on kora_lib's and kora_hud's copies of this file.
  */
 export function useNuiEvent<T = unknown>(action: string, handler: (data: T) => void) {
     const handlerRef = useRef(handler)

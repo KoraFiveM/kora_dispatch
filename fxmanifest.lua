@@ -3,8 +3,6 @@ game 'gta5'
 lua54 'yes'
 
 name 'kora_dispatch'
--- Keep the legacy resource name resolvable for exports['qbdispatch'] callers.
-provide 'qbdispatch'
 author 'qbcore2'
 version '0.1.0'
 description 'Job-agnostic dispatch: call lifecycle, keyboard-driven alert feed, and a tablet with a rendered map'
