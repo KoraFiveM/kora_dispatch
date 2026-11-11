@@ -1,0 +1,4 @@
+theme: jekyll-theme-cayman
+title: kora_dispatch
+description: "Job-agnostic dispatch: call lifecycle, keyboard-driven alert feed, and a tablet with a rendered map"
+show_downloads: false
