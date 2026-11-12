@@ -1,6 +1,6 @@
 ---
 title: The rendered map
-sidebar_position: 8
+sidebar_position: 9
 ---
 
 # The rendered map
