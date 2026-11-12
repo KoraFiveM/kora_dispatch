@@ -4,7 +4,7 @@ lua54 'yes'
 
 name 'kora_dispatch'
 author 'qbcore2'
-version '0.2.0'
+version '0.2.1'
 description 'Job-agnostic dispatch: call lifecycle, keyboard-driven alert feed, and a tablet with a rendered map'
 
 -- Every job resource that raises calls depends on this one, so it has to be
