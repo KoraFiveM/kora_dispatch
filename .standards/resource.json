@@ -1,0 +1,70 @@
+{
+  "resource": "kora_dispatch",
+  "standardsRevision": "2026-11-12.2",
+  "realms": {
+    "client": [
+      "client/blip.lua",
+      "client/exports.lua",
+      "client/keybinds.lua",
+      "client/state.lua",
+      "client/sync.lua",
+      "client/theme.lua",
+      "client/ui.lua"
+    ],
+    "server": [
+      "server/api.lua",
+      "server/callbacks.lua",
+      "server/compat.lua",
+      "server/dev.lua",
+      "server/ingress.lua",
+      "server/recipients.lua",
+      "server/store.lua",
+      "server/units.lua"
+    ],
+    "shared": [
+      "config.lua",
+      "shared/calls.lua"
+    ],
+    "manifest": [
+      "fxmanifest.lua"
+    ],
+    "test": [
+      "test/harness.lua",
+      "test/mocks.lua",
+      "test/smoke/api.lua",
+      "test/smoke/call_alerts.lua",
+      "test/smoke/call_blips.lua",
+      "test/smoke/callbacks.lua",
+      "test/smoke/calls.lua",
+      "test/smoke/compat.lua",
+      "test/smoke/exports.lua",
+      "test/smoke/focus.lua",
+      "test/smoke/ingress.lua",
+      "test/smoke/response_cap.lua",
+      "test/smoke/units.lua"
+    ]
+  },
+  "exclude": [
+    ".git/*",
+    ".github/*",
+    ".standards/*",
+    "node_modules/*",
+    "**/node_modules/*",
+    "vendor/*",
+    "**/vendor/*",
+    "web/*",
+    "ui/*",
+    "html/*",
+    "dist/*",
+    "artifacts/*",
+    "runtime/*",
+    "txData/*",
+    "storage/*",
+    "stream/*",
+    "docs/*",
+    "__pycache__/*",
+    "modules/lookup/data/*"
+  ],
+  "project": "Kora Framework",
+  "copyright": "Copyright © 2026 Kora Framework"
+}
