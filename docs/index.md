@@ -19,7 +19,7 @@ Current version: see `version` in `fxmanifest.lua`.
 
 ## Features
 
-- Call lifecycle: create, update, close, expire, retention. See [Exports](./exports.md).
+- Call lifecycle: create, update, close, expire, retention. See [API reference](./api/index.md).
 - Unit response states `en_route`, `on_scene`, `clear`, a per-player cap on concurrent accepted calls, and a one-shot `onAccept` server event hook.
 - Player-originated alert ingress (`registerPlayerAlert` and `createPlayerCall`) with server-side cooldowns, a live-call ceiling and server-read coordinates.
 - Alert feed overlay and tablet UI with live map, queue, history, call detail and on-duty units. See [User interface](./ui.md).
@@ -29,13 +29,17 @@ Current version: see `version` in `fxmanifest.lua`.
 - Legacy compatibility mirror for `kora_core` alerts and optional legacy qb events. See [Compatibility](./compatibility.md).
 - Admin development commands when `Config.debug` is on. See [Commands](./commands.md).
 
-## Pages
+## Documentation map
 
-- [Installation](./installation.md) - dependencies, load order, server.cfg, what is not needed
-- [Configuration](./configuration.md) - every `Config` option
-- [Exports](./exports.md) - server and client exports, call payload fields, onAccept hook
-- [Events and callbacks](./events.md) - net events, local events consumed, kora_lib callbacks
+- [Installation](./installation.md) - dependencies, load order, server.cfg, manifest setup, adding a service
+- [How to use](./how-to-use.md) - services, raising/revising calls, unit states, access, controls, map, compatibility
 - [Commands](./commands.md) - dev commands and `/dispatchcoords`, permissions
+- [API reference](./api/index.md) - module overview
+  - [Server API](./api/server-api.md) - call lifecycle exports, payload fields, on-duty roster
+  - [Player-originated alerts](./api/ingress.md) - `registerPlayerAlert` and `createPlayerCall`
+  - [Client presentation exports](./api/client-presentation.md) - theme, feed options, tablet, service, route
+- [Configuration](./configuration.md) - every `Config` option
+- [Events and callbacks](./events.md) - net events, local events consumed, kora_lib callbacks
 - [User interface](./ui.md) - feed, keybinds, tablet, theming
 - [The rendered map](./map.md) - tiles, projection, recalibration, blips, fade
 - [Compatibility](./compatibility.md) - legacy alert paths and integrations

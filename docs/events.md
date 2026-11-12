@@ -1,6 +1,6 @@
 ---
 title: Events and callbacks
-sidebar_position: 5
+sidebar_position: 7
 ---
 
 # Events and callbacks
@@ -47,4 +47,4 @@ The server always overrides the filter's service and job with the caller's own.
 
 ## Events fired
 
-The only event dispatch fires on behalf of a call is the call's `onAccept` event, see [Exports](./exports.md).
+The only event dispatch fires on behalf of a call is the call's `onAccept` event, see [API reference](./api/index.md).
