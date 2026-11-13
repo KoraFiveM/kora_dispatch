@@ -20,7 +20,7 @@ end
 
 Kora.keybind.add({
     name = 'kora_dispatch_previous',
-    description = 'Dispatch: previous call',
+    description = Kora.lang('Keybind.previous'),
     defaultKey = Config.keybinds.previous,
     onPressed = function()
         if not feedActive() then return end
@@ -31,7 +31,7 @@ Kora.keybind.add({
 
 Kora.keybind.add({
     name = 'kora_dispatch_next',
-    description = 'Dispatch: next call (scrolls into history)',
+    description = Kora.lang('Keybind.next'),
     defaultKey = Config.keybinds.next,
     onPressed = function()
         if not feedActive() then return end
@@ -42,7 +42,7 @@ Kora.keybind.add({
 
 Kora.keybind.add({
     name = 'kora_dispatch_respond',
-    description = 'Dispatch: accept / en route / on scene / clear',
+    description = Kora.lang('Keybind.respond'),
     defaultKey = Config.keybinds.respond,
     onPressed = function()
         if not feedActive() then return end
@@ -87,7 +87,7 @@ Kora.keybind.add({
 
 Kora.keybind.add({
     name = 'kora_dispatch_toggle',
-    description = 'Dispatch: hide/show the dispatch UI',
+    description = Kora.lang('Keybind.toggle'),
     defaultKey = Config.keybinds.toggle,
     onPressed = function()
         if not Dispatch.state.isActive() then return end
@@ -121,14 +121,14 @@ local function warnIfOffDuty()
     if job.onduty then return end
 
     Kora.notify.send({
-        message = 'You are off duty -- dispatch is closed. Go on duty to open the tablet.',
+        message = Kora.lang('Notification.off_duty'),
         type = 'error',
     })
 end
 
 Kora.keybind.add({
     name = 'kora_dispatch_tablet',
-    description = 'Dispatch: open tablet',
+    description = Kora.lang('Keybind.tablet'),
     defaultKey = Config.keybinds.tablet,
     onPressed = function()
         if not Dispatch.state.isActive() then return warnIfOffDuty() end

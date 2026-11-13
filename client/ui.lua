@@ -6,7 +6,7 @@ Dispatch = Dispatch or {}
 Dispatch.ui = {}
 
 local function callTitle(call)
-    return (call.code and (call.code .. ' · ') or '') .. (call.title or 'Dispatch call')
+    return (call.code and (call.code .. ' · ') or '') .. (call.title or Kora.lang('UI.call'))
 end
 
 -- A call carries no top-level `location` field -- the street name, when a
@@ -17,7 +17,7 @@ local function callLocation(call)
 end
 
 local function callDescription(call)
-    return table.concat({ call.message or 'No details supplied.', callLocation(call) or 'Location unavailable' }, '\n')
+    return table.concat({ call.message or Kora.lang('UI.no_details'), callLocation(call) or Kora.lang('UI.location_unavailable') }, '\n')
 end
 
 local function callItems(calls, selected)
@@ -28,8 +28,8 @@ local function callItems(calls, selected)
             icon = call.id == selected and 'radio' or 'map-pin', badge = call.priority,
             tone = call.id == selected and 'primary' or 'neutral', action = 'dispatch:select',
             metadata = {
-                { label = 'Location', value = callLocation(call) or 'Unknown' },
-                { label = 'Units', value = #(call.units or {}) },
+                { label = Kora.lang('UI.location'), value = callLocation(call) or Kora.lang('UI.unknown') },
+                { label = Kora.lang('UI.units'), value = #(call.units or {}) },
             },
         }
     end
@@ -63,7 +63,7 @@ local function mapBlock(S, calls)
         if unit.coords then
             markers[#markers + 1] = {
                 id = 'unit:' .. tostring(unit.src), x = unit.coords.x, y = unit.coords.y,
-                label = unit.callsign or unit.name or ('Unit ' .. unit.src),
+                label = unit.callsign or unit.name or Kora.lang('UI.unit', unit.src),
                 description = unit.gradeLabel or unit.plate, icon = 'car',
                 tone = unit.src == (S.unit and S.unit.src) and 'success' or 'neutral',
                 heading = unit.heading,
@@ -71,7 +71,7 @@ local function mapBlock(S, calls)
         end
     end
     return {
-        type = 'map', id = 'live-map', title = 'Live dispatch map',
+        type = 'map', id = 'live-map', title = Kora.lang('UI.map'),
         tiles = {
             url = ('https://cfx-nui-kora_dispatch/web/build/%s/{z}/{x}/{y}.%s')
                 :format(map.tilePath, map.tileExtension or 'jpg'),
@@ -82,42 +82,42 @@ local function mapBlock(S, calls)
         markers = markers, selectedId = S.selected and tostring(S.selected) or nil,
         recenter = S.unit and S.unit.coords or nil, follow = true,
         now = Dispatch.state.now(),
-        empty = 'No active calls or unit positions to display.',
+        empty = Kora.lang('UI.no_calls_map'),
     }
 end
 
 local function selectedContent(S)
     local call = Dispatch.state.selected()
     if not call then
-        return { title = 'Call details', blocks = { { type = 'empty', title = 'No call selected', description = 'Choose a call from the queue to see its details.', icon = 'radio' } } }
+        return { title = Kora.lang('UI.call_details'), blocks = { { type = 'empty', title = Kora.lang('UI.no_call_selected'), description = Kora.lang('UI.choose_call'), icon = 'radio' } } }
     end
     local mine = Dispatch.state.myStateOn(call)
     local nextState = mine == 'en_route' and 'on_scene' or mine == 'on_scene' and 'clear' or 'en_route'
-    local nextLabel = mine == 'en_route' and 'Mark on scene' or mine == 'on_scene' and 'Clear call' or 'Accept call'
+    local nextLabel = mine == 'en_route' and Kora.lang('UI.mark_on_scene') or mine == 'on_scene' and Kora.lang('UI.clear_call') or Kora.lang('UI.accept_call')
     local actions = {}
     if Dispatch.calls.isLive(call, Dispatch.state.now()) then
         actions[#actions + 1] = {
             id = 'dispatch:respond:' .. nextState, label = nextLabel, icon = 'radio', variant = 'primary',
         }
     end
-    actions[#actions + 1] = { id = 'dispatch:route', label = 'Set route', icon = 'navigation', variant = 'secondary' }
+    actions[#actions + 1] = { id = 'dispatch:route', label = Kora.lang('UI.set_route'), icon = 'navigation', variant = 'secondary' }
     return {
         title = callTitle(call), description = callDescription(call),
         actions = actions,
         blocks = { { type = 'stats', items = {
-            { label = 'Priority', value = call.priority or '—', icon = 'alert-triangle', tone = 'warning' },
-            { label = 'Units assigned', value = #(call.units or {}), icon = 'users' },
-            { label = 'Your response', value = mine and mine:gsub('_', ' ') or 'Not assigned', icon = 'radio', tone = mine and 'primary' or 'neutral' },
-        } }, { type = 'details', title = 'Call information', columns = 2, items = {
-            { label = 'Location', value = callLocation(call) or 'Unknown', icon = 'map-pin' },
-            { label = 'Origin', value = call.origin or 'Dispatch', icon = 'radio' },
-            { label = 'Created', value = call.createdAt or '—', icon = 'clock' },
-            { label = 'Expires', value = call.expiresAt or '—', icon = 'clock', tone = 'warning' },
-        } }, { type = 'timeline', title = 'Assigned units', empty = 'No units assigned.', items = (function()
+            { label = Kora.lang('UI.priority'), value = call.priority or '-', icon = 'alert-triangle', tone = 'warning' },
+            { label = Kora.lang('UI.units_assigned'), value = #(call.units or {}), icon = 'users' },
+            { label = Kora.lang('UI.your_response'), value = mine and Kora.lang('State.' .. mine) or Kora.lang('UI.not_assigned'), icon = 'radio', tone = mine and 'primary' or 'neutral' },
+        } }, { type = 'details', title = Kora.lang('UI.call_information'), columns = 2, items = {
+            { label = Kora.lang('UI.location'), value = callLocation(call) or Kora.lang('UI.unknown'), icon = 'map-pin' },
+            { label = Kora.lang('UI.origin'), value = call.origin or Kora.lang('UI.dispatch'), icon = 'radio' },
+            { label = Kora.lang('UI.created'), value = call.createdAt or '-', icon = 'clock' },
+            { label = Kora.lang('UI.expires'), value = call.expiresAt or '-', icon = 'clock', tone = 'warning' },
+        } }, { type = 'timeline', title = Kora.lang('UI.assigned_units'), empty = Kora.lang('UI.no_units_assigned'), items = (function()
             local items = {}
             for _, unit in ipairs(call.units or {}) do items[#items + 1] = {
-                id = tostring(unit.src), title = unit.callsign or unit.name or ('Unit ' .. unit.src),
-                description = (unit.state or 'assigned'):gsub('_', ' '), timestamp = tostring(unit.at or ''),
+                id = tostring(unit.src), title = unit.callsign or unit.name or Kora.lang('UI.unit', unit.src),
+                description = Kora.lang('State.' .. (unit.state or 'assigned')), timestamp = tostring(unit.at or ''),
                 icon = 'radio', tone = unit.state == 'on_scene' and 'success' or 'primary',
             } end
             return items
@@ -129,35 +129,35 @@ local function appDefinition()
     local S = Dispatch.state.data
     local active = Dispatch.state.live()
     return {
-        id = 'kora_dispatch:tablet', title = (S.config and S.config.label) or 'Dispatch',
-        description = S.unit and ((S.unit.callsign and S.unit.callsign .. ' · ' or '') .. (S.unit.name or ('Unit ' .. S.unit.src))) or 'Dispatch tablet',
+        id = 'kora_dispatch:tablet', title = (S.config and S.config.label) or Kora.lang('UI.dispatch'),
+        description = S.unit and ((S.unit.callsign and S.unit.callsign .. ' · ' or '') .. (S.unit.name or ('Unit ' .. S.unit.src))) or Kora.lang('UI.tablet'),
         icon = 'radio', accent = Dispatch.theme.get(), width = 1220, height = 800,
         navigation = {
-            { id = 'map', label = 'Live map', icon = 'map', badge = #active,
-                content = { title = 'Live operations', description = 'Pan, zoom, and select a live call marker.',
-                    blocks = { mapBlock(S, active), { type = 'list', id = 'map-calls', title = 'Active calls',
+            { id = 'map', label = Kora.lang('UI.live_map'), icon = 'map', badge = #active,
+                content = { title = Kora.lang('UI.live_operations'), description = Kora.lang('UI.map_help'),
+                    blocks = { mapBlock(S, active), { type = 'list', id = 'map-calls', title = Kora.lang('UI.active_calls'),
                         searchable = true, pageSize = 6, layout = 'cards', items = callItems(active, S.selected),
-                        empty = 'No active calls. Everything is clear.' } } } },
-            { id = 'queue', label = 'Active calls', icon = 'radio', badge = #active,
-                content = { title = 'Active calls', description = 'Search or select a call to inspect it, respond or set a route.',
+                        empty = Kora.lang('UI.no_active_calls') } } } },
+            { id = 'queue', label = Kora.lang('UI.active_calls'), icon = 'radio', badge = #active,
+                content = { title = Kora.lang('UI.active_calls'), description = Kora.lang('UI.active_calls_help'),
                     blocks = { { type = 'list', id = 'active-calls', searchable = true, pageSize = 8,
-                        layout = 'cards', items = callItems(active, S.selected), empty = 'No active calls. Everything is clear.' } } } },
-            { id = 'history', label = 'History', icon = 'history', badge = #S.order,
-                content = { title = 'Call history', blocks = { { type = 'list', id = 'call-history', searchable = true,
-                    pageSize = 10, items = callItems(Dispatch.state.all(), S.selected), empty = 'No calls in this shift.' } } } },
-            { id = 'detail', label = 'Selected call', icon = 'map-pin', content = selectedContent(S) },
-            { id = 'units', label = 'Units', icon = 'users', badge = #S.units,
-                content = { title = 'On-duty units', blocks = { { type = 'list', id = 'units', searchable = true,
+                        layout = 'cards', items = callItems(active, S.selected), empty = Kora.lang('UI.no_active_calls') } } } },
+            { id = 'history', label = Kora.lang('UI.history'), icon = 'history', badge = #S.order,
+                content = { title = Kora.lang('UI.call_history'), blocks = { { type = 'list', id = 'call-history', searchable = true,
+                    pageSize = 10, items = callItems(Dispatch.state.all(), S.selected), empty = Kora.lang('UI.no_calls_this_shift') } } } },
+            { id = 'detail', label = Kora.lang('UI.selected_call'), icon = 'map-pin', content = selectedContent(S) },
+            { id = 'units', label = Kora.lang('UI.units_tab'), icon = 'users', badge = #S.units,
+                content = { title = Kora.lang('UI.on_duty_units'), blocks = { { type = 'list', id = 'units', searchable = true,
                     layout = 'cards', pageSize = 9, items = (function()
                     local units = {}
                     for _, unit in ipairs(S.units) do units[#units + 1] = {
-                        id = tostring(unit.src), label = (unit.callsign and unit.callsign .. ' · ' or '') .. (unit.name or ('Unit ' .. unit.src)),
-                        description = unit.gradeLabel or 'On duty', icon = 'users', tone = unit.src == (S.unit and S.unit.src) and 'primary' or 'neutral',
+                        id = tostring(unit.src), label = (unit.callsign and unit.callsign .. ' · ' or '') .. (unit.name or Kora.lang('UI.unit', unit.src)),
+                        description = unit.gradeLabel or Kora.lang('UI.on_duty'), icon = 'users', tone = unit.src == (S.unit and S.unit.src) and 'primary' or 'neutral',
                     } end
                     return units
-                end)(), empty = 'No unit updates yet.' } } } },
+                end)(), empty = Kora.lang('UI.no_unit_updates') } } } },
         },
-        footer = 'Routes and call responses are verified by dispatch.',
+        footer = Kora.lang('UI.footer'),
         onAction = function(actionId, context)
             if actionId == 'dispatch:select' then
                 local id = tonumber(context and context.itemId)
@@ -165,15 +165,15 @@ local function appDefinition()
                 return { update = { navigation = appDefinition().navigation } }
             end
             local call = Dispatch.state.selected()
-            if not call then error('Select a call first.') end
+            if not call then error(Kora.lang('UI.select_call_first')) end
             if actionId == 'dispatch:route' then
                 Dispatch.blip.route(call)
                 return {}
             end
             local response = actionId:match('^dispatch:respond:(.+)$')
-            if not response then error('Unknown dispatch action.') end
+            if not response then error(Kora.lang('UI.unknown_action')) end
             local state, err = Kora.callback.trigger('kora_dispatch:respond', call.id, response)
-            if state == false then error(err or 'Could not update the call.') end
+            if state == false then error(err or Kora.lang('UI.update_failed')) end
             return { update = { navigation = appDefinition().navigation } }
         end,
     }

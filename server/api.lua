@@ -173,18 +173,18 @@ end
 ---@return string|nil error
 function Dispatch.api.setUnitState(src, id, state)
     local call = Dispatch.store.get(id)
-    if not call then return false, 'no such call' end
+    if not call then return false, Kora.lang('Error.no_call') end
     -- Detaching is cleanup and remains valid after closure/expiry. Every other
     -- transition is a response to a live incident and must fail closed here,
     -- regardless of what an older client happens to render.
     if state ~= false and not Dispatch.calls.isLive(call, GetGameTimer()) then
-        return false, 'call is no longer active'
+        return false, Kora.lang('Error.call_inactive')
     end
 
     local unit = Dispatch.recipients.unitOf(src)
-    if not unit then return false, 'not on duty' end
-    if not Dispatch.access.allowed(unit.job, unit.jobType) then return false, 'dispatch is not available to your job' end
-    if unit.jobType ~= call.service then return false, 'wrong service for this call' end
+    if not unit then return false, Kora.lang('Error.off_duty') end
+    if not Dispatch.access.allowed(unit.job, unit.jobType) then return false, Kora.lang('Error.unavailable_job') end
+    if unit.jobType ~= call.service then return false, Kora.lang('Error.wrong_service') end
 
     -- Service alone is not enough. A call raised against `jobs = {'police'}`
     -- never reached the sheriff's department, so a deputy must not be able to
@@ -194,7 +194,7 @@ function Dispatch.api.setUnitState(src, id, state)
     for _, jobName in ipairs(call.jobs) do
         if jobName == unit.job then invited = true break end
     end
-    if not invited then return false, 'this call was not sent to your department' end
+    if not invited then return false, Kora.lang('Error.not_invited') end
 
     local existing = call.units[tostring(src)]
 
@@ -219,8 +219,8 @@ function Dispatch.api.setUnitState(src, id, state)
     if target and not existing and limit and limit > 0 then
         if Dispatch.store.countAttached(src, id) >= limit then
             return false, limit == 1
-                and 'you are already en route to a call'
-                or ('you are already en route to %d calls'):format(limit)
+                and Kora.lang('Error.active_call_limit_one')
+                or Kora.lang('Error.active_call_limit_many', limit)
         end
     end
 

@@ -58,7 +58,7 @@ end, { rateLimit = { max = 5, window = 5000 } })
 -- which is what the single respond keybind sends.
 Kora.callback.register('kora_dispatch:respond', function(src, callId, state)
     local service, unit = serviceOf(src)
-    if not service or not unit.onDuty then return false, 'not on duty' end
+    if not service or not unit.onDuty then return false, Kora.lang('Error.off_duty') end
 
     return Dispatch.api.setUnitState(src, callId, state)
 end, { rateLimit = { max = 20, window = 5000 } })

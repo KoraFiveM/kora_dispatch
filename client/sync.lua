@@ -75,8 +75,8 @@ RegisterNetEvent('kora_dispatch:client:call', function(call, serverNow)
 
     if Config.alerts and Config.alerts.notify then
         Kora.notify.send({
-            title = call.code and ('Dispatch ' .. call.code) or 'New dispatch call',
-            message = call.title or call.message or 'A new call is waiting.',
+            title = call.code and Kora.lang('Notification.dispatch_code', call.code) or Kora.lang('Notification.new_call'),
+            message = call.title or call.message or Kora.lang('Notification.waiting'),
             type = call.priority == 1 and 'error' or (call.priority == 2 and 'warning' or 'info'),
             duration = Config.alerts.duration,
             icon = call.icon or 'radio',

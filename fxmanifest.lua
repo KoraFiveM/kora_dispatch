@@ -3,7 +3,7 @@ game 'gta5'
 lua54 'yes'
 
 name 'kora_dispatch'
-author 'qbcore2'
+author 'Kora'
 version '0.2.1'
 description 'Job-agnostic dispatch: call lifecycle, keyboard-driven alert feed, and a tablet with a rendered map'
 
@@ -18,13 +18,14 @@ shared_script '@kora_lib/init.lua'
 shared_script '@kora_core/init.lua'
 
 shared_scripts {
-    'config.lua',
+    'shared/config.lua',
     'shared/calls.lua',
 }
 
 -- AppShell renders the map, but the dispatch-specific basemap remains owned
 -- and served by this resource.
 files {
+    'locales/*.lua',
     'web/build/map/**/*',
 }
 

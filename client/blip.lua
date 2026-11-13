@@ -28,7 +28,7 @@ end
 
 local function alertLabel(call)
     local name = alertName(call)
-    return name ~= '' and ('Dispatch: %s'):format(name) or 'Dispatch'
+    return name ~= '' and Kora.lang('Blip.title', name) or Kora.lang('Blip.dispatch')
 end
 
 local function callLocation(call)
@@ -40,9 +40,9 @@ local function callInfo(call)
     return {
         title = alertLabel(call),
         rows = {
-            { kind = 'name', label = 'Priority', value = priority.label },
-            { kind = 'name', label = 'Location', value = callLocation(call) or 'Location unavailable' },
-            { kind = 'wrappedText', value = call.message or 'No details supplied.' },
+            { kind = 'name', label = Kora.lang('Blip.priority'), value = priority.label },
+            { kind = 'name', label = Kora.lang('Blip.location'), value = callLocation(call) or Kora.lang('UI.location_unavailable') },
+            { kind = 'wrappedText', value = call.message or Kora.lang('UI.no_details') },
         },
     }
 end
@@ -92,7 +92,7 @@ function Dispatch.blip.refreshCalls()
                 scale = map.callBlipScale or 0.85,
                 name = name ~= '' and name or nil,
                 shortRange = false,
-                category = 'Dispatch',
+                category = Kora.lang('Blip.dispatch'),
                 info = callInfo(call),
             })
             if blip then callBlips[id] = blip end
@@ -128,8 +128,8 @@ function Dispatch.blip.route(call)
         color = call.priority == 1 and 1 or (call.priority == 2 and 47 or 4),
         scale = 0.9,
         shortRange = false,
-        category = 'Dispatch',
-        name = ('%s%s'):format(call.code and (call.code .. ' - ') or '', call.title or 'Dispatch'),
+        category = Kora.lang('Blip.dispatch'),
+        name = ('%s%s'):format(call.code and (call.code .. ' - ') or '', call.title or Kora.lang('Blip.dispatch')),
         route = true,
         info = callInfo(call),
     })

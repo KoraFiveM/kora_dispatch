@@ -13,17 +13,17 @@ if Config.compat.legacyInbound then
     -- incident whose coordinates are derived from the reporter's ped.
     local compatibilityAlerts = {
         ['kora_dispatch:compat:police'] = {
-            jobTypes = { 'leo' }, code = '10-13', title = 'Officer Alert',
-            message = 'An officer requested assistance.', priority = 1, icon = 'siren',
+            jobTypes = { 'leo' }, code = '10-13', title = Kora.lang('Compatibility.officer_title'),
+            message = Kora.lang('Compatibility.officer_message'), priority = 1, icon = 'siren',
             requiredJobType = 'leo',
         },
         ['kora_dispatch:compat:ambulance'] = {
-            jobTypes = { 'ems' }, code = '10-52', title = 'Medical Emergency',
-            message = 'A medical emergency was reported.', priority = 1, icon = 'heart-pulse',
+            jobTypes = { 'ems' }, code = '10-52', title = Kora.lang('Compatibility.medical_title'),
+            message = Kora.lang('Compatibility.medical_message'), priority = 1, icon = 'heart-pulse',
         },
         ['kora_dispatch:compat:doctor'] = {
-            jobTypes = { 'ems' }, code = '10-51', title = 'Doctor Requested',
-            message = 'A doctor is needed at the hospital.', priority = 3, icon = 'stethoscope',
+            jobTypes = { 'ems' }, code = '10-51', title = Kora.lang('Compatibility.doctor_title'),
+            message = Kora.lang('Compatibility.doctor_message'), priority = 3, icon = 'stethoscope',
         },
     }
 

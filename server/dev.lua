@@ -46,20 +46,20 @@ end
 -- severity model (badge, colour, lifetime, fade) rather than three identical
 -- alerts that only differ by a number.
 local SAMPLES = {
-    [1] = { code = '10-90', title = 'Bank Robbery', icon = 'banknote',
-            message = 'Silent alarm triggered. Two suspects reported inside.',
+    [1] = { code = '10-90', title = Kora.lang('Debug.sample_bank_title'), icon = 'banknote',
+            message = Kora.lang('Debug.sample_bank_message'),
             data = { plate = '46EEK572', vehicle = 'Sultan', suspects = '2' } },
-    [2] = { code = '10-31', title = 'Shots Fired', icon = 'crosshair',
-            message = 'Automatic gunfire reported by multiple callers.',
+    [2] = { code = '10-31', title = Kora.lang('Debug.sample_shots_title'), icon = 'crosshair',
+            message = Kora.lang('Debug.sample_shots_message'),
             data = { weapon = 'Assault Rifle' } },
-    [3] = { code = '10-16', title = 'Vehicle Theft', icon = 'car',
-            message = 'A grey Bison was taken from a driveway.',
+    [3] = { code = '10-16', title = Kora.lang('Debug.sample_theft_title'), icon = 'car',
+            message = Kora.lang('Debug.sample_theft_message'),
             data = { plate = 'ABC 123', vehicle = 'Bison' } },
 }
 
-Kora.commands.add('dispatchtest', 'Raise a test call to your own service', {
-    { name = 'priority', help = '1 critical, 2 high, 3 routine (default 2)' },
-    { name = 'service', help = 'Override the service, e.g. leo / ems / recovery' },
+Kora.commands.add('dispatchtest', Kora.lang('Debug.command_test'), {
+    { name = 'priority', help = Kora.lang('Debug.arg_priority') },
+    { name = 'service', help = Kora.lang('Debug.arg_service') },
 }, false, function(source, args)
     local service = args[2]
 
@@ -70,7 +70,7 @@ Kora.commands.add('dispatchtest', 'Raise a test call to your own service', {
         service = job and job.type
         if not service or service == 'none' or service == 'civ' then
             return Kora.notify.send(source, {
-                message = 'You are not in a dispatch service. Pass one: /dispatchtest 1 leo',
+                message = Kora.lang('Debug.no_service_test'),
                 type = 'error',
             })
         end
@@ -91,7 +91,7 @@ Kora.commands.add('dispatchtest', 'Raise a test call to your own service', {
     })
 
     if not id then
-        return Kora.notify.send(source, { message = ('Test call refused: %s'):format(count), type = 'error' })
+        return Kora.notify.send(source, { message = Kora.lang('Debug.test_refused', count), type = 'error' })
     end
 
     -- A call reaching nobody is the single most confusing outcome of this
@@ -104,27 +104,25 @@ Kora.commands.add('dispatchtest', 'Raise a test call to your own service', {
     if count == 0 then
         local job = exports.kora_core:getJob(source)
         local selfService = job and job.type
-        local hint = (selfService == service and not (job and job.onduty))
-            and ' You are OFF DUTY -- go on duty and it will reach you.'
-            or ' Nobody is on duty for that service.'
-
         return Kora.notify.send(source, {
-            message = ('Raised #%d (%s, P%d) but it reached 0 units.%s'):format(id, service, priority, hint),
+            message = (selfService == service and not (job and job.onduty))
+                and Kora.lang('Debug.raised_no_units_off_duty', id, service, priority)
+                or Kora.lang('Debug.raised_no_units', id, service, priority),
             type = 'error',
         })
     end
 
     Kora.notify.send(source, {
-        message = ('Raised #%d (%s, P%d) to %d unit(s).'):format(id, service, priority, count),
+        message = Kora.lang('Debug.raised_units', id, service, priority, count),
         type = 'success',
     })
 end, { permission = 'admin', checkPermission = isAdmin })
 
-Kora.commands.add('dispatchclear', 'Close every live call on your service', {}, false, function(source)
+Kora.commands.add('dispatchclear', Kora.lang('Debug.command_clear'), {}, false, function(source)
     local job = exports.kora_core:getJob(source)
     local service = job and job.type
     if not service then
-        return Kora.notify.send(source, { message = 'You are not in a dispatch service.', type = 'error' })
+        return Kora.notify.send(source, { message = Kora.lang('Debug.no_service'), type = 'error' })
     end
 
     local closed = 0
@@ -132,10 +130,10 @@ Kora.commands.add('dispatchclear', 'Close every live call on your service', {}, 
         if Dispatch.api.closeCall(call.id, 'cleared by an admin') then closed = closed + 1 end
     end
 
-    Kora.notify.send(source, { message = ('Closed %d call(s).'):format(closed), type = 'success' })
+    Kora.notify.send(source, { message = Kora.lang('Debug.closed_calls', closed), type = 'success' })
 end, { permission = 'admin', checkPermission = isAdmin })
 
-Kora.commands.add('dispatchstatus', 'Print dispatch state to the server console', {}, false, function(source)
+Kora.commands.add('dispatchstatus', Kora.lang('Debug.command_status'), {}, false, function(source)
     print('[kora_dispatch] ---- status ----')
     print(('  tablet viewers: %d'):format(Dispatch.units.viewerCount()))
 
@@ -146,5 +144,5 @@ Kora.commands.add('dispatchstatus', 'Print dispatch state to the server console'
         print(('  %-10s %d live / %d in history, %d on duty'):format(service, live, total, onDuty))
     end
 
-    Kora.notify.send(source, { message = 'Dispatch status printed to the server console.', type = 'info' })
+    Kora.notify.send(source, { message = Kora.lang('Debug.status_printed'), type = 'info' })
 end, { permission = 'admin', checkPermission = isAdmin })
